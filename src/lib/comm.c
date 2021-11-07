@@ -15,7 +15,10 @@
 
 #include "comm.h"
 
+//char buffer[][BUFFER_SIZE]
+
 // Open a commucation using tcp
+
 int open_comm(char *ip, int port, int *socket_desc)
 {
 	struct sockaddr_in server;
@@ -64,13 +67,18 @@ int send_message(const char *message, int socket_desc)
 // Read on TCP socket
 int get_message(char *message, int socket_desc)
 {
-	int n;
-	if ((n = recv(socket_desc, message, sizeof(message), 0)) < 0)
+	char buffer[2];
+	int i=0;
+	do
 	{
-		puts("Reciev failed\n");
-		return EXIT_FAILURE;
-	}
-	message[n] = '\0';
+		if ((recv(socket_desc, buffer, 1, 0)) < 0)
+		{
+			puts("Reciev failed\n");
+			return EXIT_FAILURE;
+		}
+		message[i++]=buffer[0];
+	} while (buffer[0] != '_' && buffer[0] !='\0');
+	message[--i]='\0';
 	return EXIT_SUCCESS;
 }
 
@@ -112,7 +120,7 @@ int accept_conections(int socket, void *(*connection_handler)(void *))
 {
 	int new_socket, *new_sock, c;
 	struct sockaddr_in client;
-	//Accept and incoming connection
+
 	puts("Waiting for incoming connections...");
 	c = sizeof(struct sockaddr_in);
 	while ((new_socket = accept(socket, (struct sockaddr *)&client, (socklen_t *)&c)))

@@ -2,4 +2,6 @@
 
 rm ./bot
 rm ./simu
-make
+rm ./mapper
+make clean
+make 

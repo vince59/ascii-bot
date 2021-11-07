@@ -10,6 +10,7 @@ export CFLAGS
 export LDFLAGS=-L../lib -lsystem -lncurses -lpthread -lm
 ROBOT_DIR=src/robot
 SIMULATOR_DIR=src/simulator
+MAPPER_DIR=src/mapper
 LIB_DIR=src/lib
 EXEC=bot
 MAKEFLAGS += --no-print-directory
@@ -24,16 +25,20 @@ endif
 	@(cd $(LIB_DIR) && $(MAKE))
 	@(cd $(ROBOT_DIR) && $(MAKE))
 	@(cd $(SIMULATOR_DIR) && $(MAKE))
+	@(cd $(MAPPER_DIR) && $(MAKE))
 
 clean:
 	@(cd $(LIB_DIR) && $(MAKE) $@)
 	@(cd $(ROBOT_DIR) && $(MAKE) $@)
 	@(cd $(SIMULATOR_DIR) && $(MAKE) $@)
+	@(cd $(MAPPER_DIR) && $(MAKE) $@)
 	
 mrproper: clean
 	@(cd $(LIB_DIR) && $(MAKE) $@)
 	@(cd $(ROBOT_DIR) && $(MAKE) $@)
 	@(cd $(SIMULATOR_DIR) && $(MAKE) $@)
+	@(cd $(MAPPER_DIR) && $(MAKE) $@)
 	@rm -f ./bot
 	@rm -f ./simulator
+	@rm -f ./mapper
 	
