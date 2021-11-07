@@ -9,67 +9,72 @@
 #include <ncurses.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h> //strlen
+#include <string.h> 
 #include <sys/socket.h>
-#include <arpa/inet.h> //inet_addr
+#include <arpa/inet.h>
 #include <unistd.h>
 
-int socket_desc;
 extern  char * optarg;
 
-int open_comm(const char *, int);
-int close_comm(void);
-int send_message(const char *);
-int get_message(char *);
+int open_comm(char *, int, int *);
+int close_comm(int);
+int send_message(const char *,int);
+int get_message(char *,int);
+int get_param(int, char *[], char *, int *);
 
 int main(int argc, char *argv[])
 {
+	char message[2000];
+	char server[40];
+	int port;
+	int socket;
 
+	if (get_param(argc, argv, server, &port)) return EXIT_FAILURE;
+	if (open_comm(server, port, &socket)) return EXIT_FAILURE;
+	if (send_message("h\n",socket)) return EXIT_FAILURE;
+	if (get_message(message,socket)) return EXIT_FAILURE;
+
+	puts(message);
+	close_comm(socket);
+	return EXIT_SUCCESS;
+}
+
+int get_param(int argc, char *argv[], char *server, int *port)
+{
 	int c;
-	char *server = NULL;
-	char *port = NULL;
+	*port = 0;
+	server = strcpy(server, "?");
 	char *usage = "Usage : bot -s ip -p port\nex : bot -s 127.0.0.1 -p 8888\n";
 	while ((c = getopt(argc, argv, "s:p:")) != -1)
 	{
 		switch (c)
 		{
 		case 's':
-			server = optarg;
+			server = strcpy(server, optarg);
 			break;
 		case 'p':
-			port = optarg;
+			*port = atoi(optarg);
 			break;
 		default:
 			puts(usage);
 			return EXIT_FAILURE;
 		}
 	}
-	if (server == NULL || port == NULL)
+	if (server[0] == '?' || *port == 0)
 	{
 		puts(usage);
 		return EXIT_FAILURE;
 	}
-
-	char message[2000];
-	if (open_comm(server, atoi(port)))
-		return EXIT_FAILURE;
-	if (send_message("h\n"))
-		return EXIT_FAILURE;
-	if (get_message(message))
-		return EXIT_FAILURE;
-
-	puts(message);
-	close_comm();
 	return EXIT_SUCCESS;
 }
 
-int open_comm(const char *ip, int port)
+int open_comm(char *ip, int port, int *socket_desc)
 {
 	struct sockaddr_in server;
-
+	printf("Open comm on %s:%d\n",ip,port);
 	//Create socket
-	socket_desc = socket(AF_INET, SOCK_STREAM, 0);
-	if (socket_desc == -1)
+	*socket_desc = socket(AF_INET, SOCK_STREAM, 0);
+	if (*socket_desc == -1)
 	{
 		puts("Could not create socket");
 		return EXIT_FAILURE;
@@ -80,7 +85,7 @@ int open_comm(const char *ip, int port)
 	server.sin_port = htons(port);
 
 	//Connect to remote server
-	if (connect(socket_desc, (struct sockaddr *)&server, sizeof(server)) < 0)
+	if (connect(*socket_desc, (struct sockaddr *)&server, sizeof(server)) < 0)
 	{
 		puts("Connect error\n");
 		return EXIT_FAILURE;
@@ -89,14 +94,14 @@ int open_comm(const char *ip, int port)
 	return EXIT_SUCCESS;
 }
 
-int close_comm(void)
+int close_comm(int socket_desc)
 {
 	close(socket_desc);
 	puts("Connection closed\n");
 	return EXIT_SUCCESS;
 }
 
-int send_message(const char *message)
+int send_message(const char *message, int socket_desc)
 {
 	if (send(socket_desc, message, strlen(message), 0) < 0)
 	{
@@ -106,7 +111,7 @@ int send_message(const char *message)
 	return EXIT_SUCCESS;
 }
 
-int get_message(char *message)
+int get_message(char *message, int socket_desc)
 {
 	int n;
 	if ((n = recv(socket_desc, message, sizeof(message), 0)) < 0)
