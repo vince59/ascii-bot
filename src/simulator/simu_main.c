@@ -15,6 +15,7 @@
 
 #include "comm.h"
 #include "utils.h"
+#include "mapper.h"
 
 void *connection_handler(void *);
 
@@ -23,6 +24,7 @@ int main(int argc, char *argv[])
 	int srv_port, mapper_port, socket, mapper_socket;
 	char mapper[40];
 	char message[MESSAGE_LENGTH];
+	t_cell_struct **matrix;
 
 	if (get_srv_param(argc, argv, &srv_port, mapper, &mapper_port))
 		return EXIT_FAILURE;
@@ -30,11 +32,14 @@ int main(int argc, char *argv[])
 	if (open_comm(mapper, mapper_port, &mapper_socket))
 		return EXIT_FAILURE;
 
+	matrix = gen_map(10,20);
+	init_map(matrix, 10,20);
+
 	for (int col = 0; col < 20; col++)
 	{
 		for (int row = 0; row < 10; row++)
 		{
-			sprintf(message, "d %d %d X_", col, row);
+			sprintf(message, "d %d %d %c_", col, row, matrix[col][row].obstacle);
 			if (send_message(message, mapper_socket))
 				return EXIT_FAILURE;
 		}
