@@ -7,10 +7,11 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h> 
+#include <string.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "comm.h"
 
@@ -18,7 +19,7 @@
 int open_comm(char *ip, int port, int *socket_desc)
 {
 	struct sockaddr_in server;
-	printf("Open comm on %s:%d\n",ip,port);
+	printf("Open comm on %s:%d\n", ip, port);
 	//Create socket
 	*socket_desc = socket(AF_INET, SOCK_STREAM, 0);
 	if (*socket_desc == -1)
@@ -69,6 +70,73 @@ int get_message(char *message, int socket_desc)
 		puts("Reciev failed\n");
 		return EXIT_FAILURE;
 	}
-	message[n]='\0';
+	message[n] = '\0';
+	return EXIT_SUCCESS;
+}
+
+// start server and linten to specific port
+
+int srv_listen(int port, int *socket_desc)
+{
+	struct sockaddr_in server;
+
+	//Create socket
+	*socket_desc = socket(AF_INET, SOCK_STREAM, 0);
+	if (*socket_desc == -1)
+	{
+		printf("Could not create socket");
+	}
+
+	//Prepare the sockaddr_in structure
+	server.sin_family = AF_INET;
+	server.sin_addr.s_addr = INADDR_ANY;
+	server.sin_port = htons(port);
+
+	//Bind
+	if (bind(*socket_desc, (struct sockaddr *)&server, sizeof(server)) < 0)
+	{
+		puts("bind failed");
+		return EXIT_FAILURE;
+	}
+	puts("bind done");
+
+	//Listen
+	listen(*socket_desc, 3);
+	printf("Listen on %d\n", port);
+	return EXIT_SUCCESS;
+}
+
+// accept and run thread for each new connection
+
+int accept_conections(int socket, void *(*connection_handler)(void *))
+{
+	int new_socket, *new_sock, c;
+	struct sockaddr_in client;
+	//Accept and incoming connection
+	puts("Waiting for incoming connections...");
+	c = sizeof(struct sockaddr_in);
+	while ((new_socket = accept(socket, (struct sockaddr *)&client, (socklen_t *)&c)))
+	{
+		puts("Connection accepted");
+
+		pthread_t sniffer_thread;
+		new_sock = malloc(1);
+		*new_sock = new_socket;
+
+		if (pthread_create(&sniffer_thread, NULL, connection_handler, (void *)new_sock) < 0)
+		{
+			perror("could not create thread");
+			return EXIT_FAILURE;
+		}
+
+		puts("Handler assigned");
+	}
+
+	if (new_socket < 0)
+	{
+		perror("accept failed");
+		return EXIT_FAILURE;
+	}
+
 	return EXIT_SUCCESS;
 }

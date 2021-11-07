@@ -15,9 +15,7 @@
 #include <unistd.h>
 
 #include "comm.h"
-
-extern  char * optarg;
-
+#include "utils.h"
 
 int main(int argc, char *argv[])
 {
@@ -26,7 +24,7 @@ int main(int argc, char *argv[])
 	int port;
 	int socket;
 
-	if (get_param(argc, argv, server, &port)) return EXIT_FAILURE;
+	if (get_bot_param(argc, argv, server, &port)) return EXIT_FAILURE;
 	if (open_comm(server, port, &socket)) return EXIT_FAILURE;
 	if (send_message("h\n",socket)) return EXIT_FAILURE;
 	if (get_message(message,socket)) return EXIT_FAILURE;
@@ -35,36 +33,6 @@ int main(int argc, char *argv[])
 	close_comm(socket);
 	return EXIT_SUCCESS;
 }
-
-int get_param(int argc, char *argv[], char *server, int *port)
-{
-	int c;
-	*port = 0;
-	server = strcpy(server, "?");
-	char *usage = "Usage : bot -s ip -p port\nex : bot -s 127.0.0.1 -p 8888\n";
-	while ((c = getopt(argc, argv, "s:p:")) != -1)
-	{
-		switch (c)
-		{
-		case 's':
-			server = strcpy(server, optarg);
-			break;
-		case 'p':
-			*port = atoi(optarg);
-			break;
-		default:
-			puts(usage);
-			return EXIT_FAILURE;
-		}
-	}
-	if (server[0] == '?' || *port == 0)
-	{
-		puts(usage);
-		return EXIT_FAILURE;
-	}
-	return EXIT_SUCCESS;
-}
-
 
 //--------------------------------------------------------
 // FUNCTION main

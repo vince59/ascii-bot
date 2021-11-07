@@ -3,7 +3,7 @@ SRC= $(wildcard *.c)
 OBJ= $(SRC:.c=.o)
 
 all: $(EXEC)
-	@echo "compile robot"
+	@echo "compile simulator"
 
 simu: $(OBJ)
 	@$(CC) -o $@ $^ $(LDFLAGS)
