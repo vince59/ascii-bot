@@ -16,6 +16,7 @@
 
 #include "comm.h"
 #include "utils.h"
+#include "mapper.h"
 
 void *connection_handler(void *);
 
@@ -33,6 +34,20 @@ int main(int argc, char *argv[])
 	return EXIT_SUCCESS;
 }
 
+int get_ascii(int code)
+{
+	switch (code)
+	{
+	case FREE:
+		return '\u2500';
+	case OBSTACLE:
+		return 'o';
+	case ROBOT:
+		return 'R';
+	}
+	return '?';
+}
+
 /*
  * This will handle connection for each client
  * */
@@ -42,22 +57,30 @@ void *connection_handler(void *socket)
 	//Get the socket descriptor
 	int sock = *(int *)socket;
 	char message[MESSAGE_LENGTH];
-	char c, cmd;
-	int col, row;
+	char cmd, c;
+	int col, row, code;
 
 	initscr();
+	start_color();
+
+	init_pair(FREE, COLOR_BLUE, COLOR_WHITE);
+	init_pair(OBSTACLE, COLOR_YELLOW, COLOR_BLACK);
+	init_pair(ROBOT, COLOR_RED, COLOR_BLACK);
+
 	//getmaxyx(stdscr, mrow, mcol);
 	curs_set(0);
 	do
 	{
 		if (get_message(message, sock))
 			break;
-		sscanf(message, "%c %d %d %c", &cmd, &col, &row, &c);
+		sscanf(message, "%c %d %d %d", &cmd, &col, &row, &code);
 		move(row, col);
+		attron(COLOR_PAIR(code));
+		c=get_ascii(code);
 		addch(c);
 		refresh();
 	} while (message[0] != '\0');
-
+printf("%s",message);
 	curs_set(1);
 	endwin();
 	puts("Client disconnected\n");

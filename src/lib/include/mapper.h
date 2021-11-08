@@ -9,9 +9,9 @@
 #define MAPPER_H
 
 // obstacle type inside the matrix
-#define FREE     0
-#define OBSTACLE 1
-#define ROBOT    2
+#define FREE     1
+#define OBSTACLE 2
+#define ROBOT    3
 
 // orientation
 #define N  0  // Nord

@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 	{
 		for (int row = 0; row < 10; row++)
 		{
-			sprintf(message, "d %d %d %c_", col, row, matrix[col][row].obstacle);
+			sprintf(message, "d %d %d %d_", col, row, matrix[col][row].obstacle);
 			if (send_message(message, mapper_socket))
 				return EXIT_FAILURE;
 		}

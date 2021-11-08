@@ -13,11 +13,11 @@
 t_cell_struct **gen_map(int row, int col)
 {
     t_cell_struct **matrix;
-    int l;
+    int c;
 
-    matrix = malloc(sizeof(t_cell_struct *) * row);
-    for (l = 0; l < row; l++)
-        matrix[l] = malloc(sizeof(t_cell_struct) * col);
+    matrix = malloc(sizeof(t_cell_struct *) * col);
+    for (c = 0; c < col; c++)
+        matrix[c] = malloc(sizeof(t_cell_struct) * row);
 
     return matrix;
 }
