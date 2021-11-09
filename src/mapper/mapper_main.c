@@ -38,12 +38,12 @@ int get_ascii(int code)
 {
 	switch (code)
 	{
-	case FREE:
-		return '\u2500';
+	case FREE: 
+		return 32;
 	case OBSTACLE:
-		return 'o';
+		return 97 | A_ALTCHARSET;
 	case ROBOT:
-		return 'R';
+		return 88 | WA_TOP;
 	}
 	return '?';
 }
@@ -57,15 +57,15 @@ void *connection_handler(void *socket)
 	//Get the socket descriptor
 	int sock = *(int *)socket;
 	char message[MESSAGE_LENGTH];
-	char cmd, c;
+	char cmd;
 	int col, row, code;
 
 	initscr();
 	start_color();
 
-	init_pair(FREE, COLOR_BLUE, COLOR_WHITE);
-	init_pair(OBSTACLE, COLOR_YELLOW, COLOR_BLACK);
-	init_pair(ROBOT, COLOR_RED, COLOR_BLACK);
+	init_pair(FREE, COLOR_BLUE, COLOR_BLUE);
+	init_pair(OBSTACLE, COLOR_RED, COLOR_RED);
+	init_pair(ROBOT, COLOR_WHITE, COLOR_BLUE);
 
 	//getmaxyx(stdscr, mrow, mcol);
 	curs_set(0);
@@ -75,16 +75,18 @@ void *connection_handler(void *socket)
 			break;
 		sscanf(message, "%c %d %d %d", &cmd, &col, &row, &code);
 		move(row, col);
-		attron(COLOR_PAIR(code));
-		c=get_ascii(code);
-		addch(c);
+		color_set(code, NULL);
+		addch(get_ascii(code));
 		refresh();
 	} while (message[0] != '\0');
-printf("%s",message);
+
 	curs_set(1);
 	endwin();
 	puts("Client disconnected\n");
+	printf("[%d]\n",code);
 	free(socket);
 
 	return EXIT_SUCCESS;
 }
+
+		

@@ -42,8 +42,12 @@ void init_map(t_cell_struct **matrix, int row, int col)
     int l, c;
 
     for (l = 0; l < row; l++)
+    {
         for (c = 0; c < col; c++)
-            matrix[c][l].obstacle = FREE;
+        {
+            matrix[c][l].obstacle = (c==0 || l==0 || c== col-1 || l==row-1) ? OBSTACLE : FREE;
+        }
+    }
+
     matrix[4][7].obstacle = ROBOT;
-    matrix[8][2].obstacle = OBSTACLE;
 }
