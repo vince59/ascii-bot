@@ -13,28 +13,28 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-#include "comm.h"
+#include "network.h"
 #include "utils.h"
+#include "mapper.h"
+#include "basic_cmd.h"
 
 int main(int argc, char *argv[])
 {
 	char message[MESSAGE_LENGTH];
 	char server[40];
-	int port;
-	int socket;
+	int port, socket, result;
 
 	if (get_bot_param(argc, argv, server, &port))
 		return EXIT_FAILURE;
 	if (open_comm(server, port, &socket))
 		return EXIT_FAILURE;
-	for (int i = 0; i < 10; i++)
-	{
-		if (send_message("hello i'm the bot_", socket))
+	
+	do {
+		if ((result=move(N,socket)))
 			return EXIT_FAILURE;
-		if (get_message(message,socket))
-			return EXIT_FAILURE;
-		printf("%s\n",message);
-	}
+
+	} while (result!=CMD_KO);
+
 	close_comm(socket);
 	return EXIT_SUCCESS;
 }

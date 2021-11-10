@@ -1,11 +1,11 @@
 /*
 ** Ascii bot, 2021
-** comm.h
+** network.h
 ** Socket management
 */
 
-#ifndef COMM_H
-#define COMM_H
+#ifndef NETWORK_H
+#define NETWORK_H
 
 #define MESSAGE_LENGTH 100   // max string length for a message
 

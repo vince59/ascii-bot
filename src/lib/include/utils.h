@@ -1,6 +1,6 @@
 /*
 ** Ascii bot, 2021
-** comm.h
+** utils.h
 ** Socket management
 */
 

@@ -13,9 +13,10 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#include "comm.h"
+#include "network.h"
 #include "utils.h"
 #include "mapper.h"
+#include "basic_cmd.h"
 
 void *connection_handler(void *);
 
@@ -39,7 +40,7 @@ int main(int argc, char *argv[])
 	{
 		for (int row = 0; row < 10; row++)
 		{
-			sprintf(message, "d %d %d %d_", col, row, matrix[col][row].obstacle);
+			sprintf(message, "s %d %d %d_", col, row, matrix[col][row].obstacle);
 			if (send_message(message, mapper_socket))
 				return EXIT_FAILURE;
 		}
@@ -60,12 +61,22 @@ void *connection_handler(void *socket)
 {
 	//Get the socket descriptor
 	int sock = *(int *)socket;
-	char message[MESSAGE_LENGTH];
+	int dir;
+	char message[MESSAGE_LENGTH], cmd;
 
 	do
 	{
 		if (get_message(message, sock))
 			break;
+
+		switch (message[0])
+		{
+			case MOVE :
+				sscanf(message, "%c %d", &cmd, &dir);
+				break;
+			default 
+			
+		}
 		printf("%s\n", message);
 		if (send_message("hello i'm the simulator_", sock))
 			break;

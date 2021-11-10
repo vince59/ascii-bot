@@ -14,7 +14,7 @@
 #include <pthread.h>
 #include <curses.h>
 
-#include "comm.h"
+#include "network.h"
 #include "utils.h"
 #include "mapper.h"
 
@@ -83,9 +83,7 @@ void *connection_handler(void *socket)
 	curs_set(1);
 	endwin();
 	puts("Client disconnected\n");
-	printf("[%d]\n",code);
 	free(socket);
-
 	return EXIT_SUCCESS;
 }
 

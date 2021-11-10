@@ -1,5 +1,5 @@
 /*
-** SIMBOT PROJECT, 2020
+** Ascii bot,
 ** mapper.c
 ** File description: mapper to create the maps
 ** 

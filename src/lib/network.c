@@ -1,6 +1,6 @@
 /*
 ** Ascii bot, 2021
-** comm.c
+** network.c
 ** Socket management
 */
 
@@ -13,12 +13,9 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#include "comm.h"
-
-//char buffer[][BUFFER_SIZE]
+#include "network.h"
 
 // Open a commucation using tcp
-
 int open_comm(char *ip, int port, int *socket_desc)
 {
 	struct sockaddr_in server;
