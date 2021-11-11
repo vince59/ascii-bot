@@ -87,7 +87,7 @@ void *connection_handler(void *socket)
 		switch (message[0])
 		{
 		case QUIT:
-			if (send_status(OK, sock))
+			if (send_status(C_OK, sock))
 				return NULL;
 			end = 1;
 			break;
@@ -101,8 +101,7 @@ void *connection_handler(void *socket)
 
 			if (l < 0 || c < 0 || l >= map.max_l || c >= map.max_c || map.map[c][l].obstacle != FREE)
 			{
-				printf("%d %d %d %d %d\n",l,c,map.max_l,map.max_c,map.map[c][l].obstacle);
-				if (send_status(KO, sock))
+				if (send_status(C_KO, sock))
 					return NULL;
 			}
 			else
@@ -117,7 +116,7 @@ void *connection_handler(void *socket)
 
 				map.robots[bot_id].l = l;
 				map.robots[bot_id].c = c;
-				if (send_status(OK, sock))
+				if (send_status(C_OK, sock))
 					return NULL;
 			}
 

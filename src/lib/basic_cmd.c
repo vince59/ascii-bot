@@ -23,7 +23,7 @@ int get_id(int *id, int socket)
     return EXIT_SUCCESS;
 }
 
-int move(int direction, int *status, int socket)
+int go_to(int direction, int *status, int socket)
 {
     char message[MESSAGE_LENGTH];
 
@@ -32,7 +32,7 @@ int move(int direction, int *status, int socket)
         return EXIT_FAILURE;
     if (get_message(message, socket))
         return EXIT_FAILURE;
-    *status = message[0] == OK ? CMD_OK : CMD_KO;
+    *status = message[0] == C_OK ? CMD_OK : CMD_KO;
     return EXIT_SUCCESS;
 }
 
@@ -45,7 +45,7 @@ int quit(int *status, int socket)
         return EXIT_FAILURE;
     if (get_message(message, socket))
         return EXIT_FAILURE;
-    *status = message[0] == OK ? CMD_OK : CMD_KO;
+    *status = message[0] == C_OK ? CMD_OK : CMD_KO;
     return CMD_KO;
 }
 

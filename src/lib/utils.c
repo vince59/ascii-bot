@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h> 
 #include <unistd.h>
+#include <time.h>
 
 #include "utils.h"
 
@@ -106,4 +107,10 @@ int get_srv_param(int argc, char *argv[], int *srv_port, char* mapper_srv, int *
 		return EXIT_FAILURE;
 	}
 	return EXIT_SUCCESS;
+}
+
+void short_wait()
+{
+    struct timespec sleeptime = {0, (long)NODE_WAIT};
+    nanosleep(&sleeptime, NULL);
 }
