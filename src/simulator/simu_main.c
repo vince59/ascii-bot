@@ -21,10 +21,9 @@
 
 void *connection_handler(void *);
 int get_next_cell(int, int *, int *);
+int load_map(char *file_name);
 
-t_cell **map;
-t_pos robots[MAX_ROBOT];
-int nb_robots, max_l, max_c, mapper_socket, max_robots;
+t_map map;
 
 int main(int argc, char *argv[])
 {
@@ -35,15 +34,15 @@ int main(int argc, char *argv[])
 	if (get_srv_param(argc, argv, &srv_port, mapper, &mapper_port, map_file))
 		return EXIT_FAILURE;
 
-	if ((map = load_map(map_file, &max_l, &max_c, &max_robots)) == NULL)
+	if (load_map(map_file))
 		return EXIT_FAILURE;
 
-	if (open_comm(mapper, mapper_port, &mapper_socket))
+	if (open_comm(mapper, mapper_port, &map.mapper_socket))
 		return EXIT_FAILURE;
 
-	for (int col = 0; col < max_c; col++)
-		for (int row = 0; row < max_l; row++)
-			if (set_cell(col, row, map[col][row].obstacle, mapper_socket))
+	for (int col = 0; col < map.max_c; col++)
+		for (int row = 0; row < map.max_l; row++)
+			if (set_cell(col, row, map.map[col][row].obstacle, map.mapper_socket))
 				return EXIT_FAILURE;
 
 	if (srv_listen(srv_port, &socket))
@@ -64,10 +63,10 @@ void *connection_handler(void *socket)
 	int end = 0;
 	char message[MESSAGE_LENGTH], cmd;
 
-	int bot_id = nb_robots++;
-	if (bot_id >= max_robots)
+	int bot_id = map.nb_robots++;
+	if (bot_id >= map.max_robots)
 	{
-		printf("Connection refused, too many robots, max = %d", max_robots);
+		printf("Connection refused, too many robots, max = %d", map.max_robots);
 		return NULL;
 	}
 
@@ -82,8 +81,8 @@ void *connection_handler(void *socket)
 			return NULL;
 		int l, c, l1, c1;
 		int dir;
-		l = l1 = robots[bot_id].l;
-		c = c1 = robots[bot_id].c;
+		l = l1 = map.robots[bot_id].l;
+		c = c1 = map.robots[bot_id].c;
 
 		switch (message[0])
 		{
@@ -100,23 +99,24 @@ void *connection_handler(void *socket)
 				return NULL;
 			}
 
-			if (l < 0 || c < 0 || l >= max_l || c >= max_c || map[l][c].obstacle != FREE)
+			if (l < 0 || c < 0 || l >= map.max_l || c >= map.max_c || map.map[c][l].obstacle != FREE)
 			{
+				printf("%d %d %d %d %d\n",l,c,map.max_l,map.max_c,map.map[c][l].obstacle);
 				if (send_status(KO, sock))
 					return NULL;
 			}
 			else
 			{
-				map[c1][l1].obstacle = FREE;
-				if (set_cell(c1, l1, map[c1][l1].obstacle, mapper_socket))
+				map.map[c1][l1].obstacle = FREE;
+				if (set_cell(c1, l1, map.map[c1][l1].obstacle, map.mapper_socket))
 					return NULL;
 
-				map[c][l].obstacle = bot_id;
-				if (set_cell(c, l, map[c][l].obstacle, mapper_socket))
+				map.map[c][l].obstacle = bot_id;
+				if (set_cell(c, l, map.map[c][l].obstacle, map.mapper_socket))
 					return NULL;
 
-				robots[bot_id].l = l;
-				robots[bot_id].c = c;
+				map.robots[bot_id].l = l;
+				map.robots[bot_id].c = c;
 				if (send_status(OK, sock))
 					return NULL;
 			}
@@ -167,4 +167,73 @@ int get_next_cell(int dir, int *l, int *c)
 		return EXIT_FAILURE;
 	}
 	return EXIT_SUCCESS;
+}
+
+int load_map(char *file_name)
+{
+    int c;
+    FILE *file;
+    file = fopen(file_name, "r");
+    map.max_l = 0;
+    map.max_c = 0;
+    map.max_robots=0;
+    if (file)
+    {
+        while ((c = getc(file)) != EOF)
+        {
+            if (c == '\n')
+            {
+                map.max_l++;
+            }
+            else
+            {
+                if (map.max_l == 0)
+                    map.max_c++;
+                if (c != ' ' && c != 'X')
+                    map.max_robots++;
+            }
+        }
+        printf("Max rows = %d, max cols = %d, max bots = %d\n", map.max_l, map.max_c, map.max_robots);
+        map.map = gen_map(map.max_l, map.max_c);
+	    init_map(map.map, map.max_l, map.max_c);
+        
+        rewind(file);
+        int col=0, row=0;
+
+        while ((c = getc(file)) != EOF)
+        {
+            switch (c) 
+            {
+                case '\n' : 
+                    col=0;
+                    row++;
+                    break;
+                case 'X' :
+                    map.map[col++][row].obstacle = OBSTACLE;
+                    break;
+                case '0' :
+					map.robots[0].l=row;
+					map.robots[0].c=col;
+                    map.map[col++][row].obstacle = 0;
+                    break;
+                case '1' :
+					map.robots[1].l=row;
+					map.robots[1].c=col;
+                    map.map[col++][row].obstacle = 1;
+                    break;
+                default :
+                    col++;
+
+            }
+        }
+
+        fclose(file);
+    }
+    else
+    {
+        puts("Error when loding map, check map file path\n");
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }

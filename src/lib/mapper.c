@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include "simulator.h"
 #include "mapper.h"
 
 // allocate memory to a new map
@@ -46,68 +47,3 @@ void init_map(t_cell **matrix, int row, int col)
             matrix[c][l].obstacle = FREE;
 }
 
-t_cell ** load_map(char *file_name, int *rows, int *cols, int *bots)
-{
-    int c;
-    FILE *file;
-    file = fopen(file_name, "r");
-    *rows = 0;
-    *cols = 0;
-    *bots = 0;
-    t_cell ** map;
-    if (file)
-    {
-        while ((c = getc(file)) != EOF)
-        {
-            if (c == '\n')
-            {
-                (*rows)++;
-            }
-            else
-            {
-                if (*rows == 0)
-                    (*cols)++;
-                if (c != ' ' && c != 'X')
-                    (*bots)++;
-            }
-        }
-        printf("Max rows = %d, max cols = %d, max bots = %d\n", *rows, *cols, *bots);
-        map = gen_map(*rows, *cols);
-	    init_map(map, *rows, *cols);
-        
-        rewind(file);
-        int col=0, row=0;
-
-        while ((c = getc(file)) != EOF)
-        {
-            switch (c) 
-            {
-                case '\n' : 
-                    col=0;
-                    row++;
-                    break;
-                case 'X' :
-                    map[col++][row].obstacle = OBSTACLE;
-                    break;
-                case '0' :
-                    map[col++][row].obstacle = 0;
-                    break;
-                case '1' :
-                    map[col++][row].obstacle = 1;
-                    break;
-                default :
-                    col++;
-
-            }
-        }
-
-        fclose(file);
-    }
-    else
-    {
-        puts("Error when loding map, check map file path\n");
-        return NULL;
-    }
-
-    return map;
-}
