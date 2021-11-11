@@ -1,7 +1,7 @@
 /*
 ** Ascii bot,
 ** basic_cmd.c
-** File description: basic command for the robot
+** File description: basic command for the robot and mapper
 ** 
 */
 
@@ -9,6 +9,9 @@
 #include <stdlib.h>
 #include "basic_cmd.h"
 #include "network.h"
+
+//////////////////////////////////////////////////////
+// Bot command
 
 int get_id(int *id, int socket)
 {
@@ -20,7 +23,7 @@ int get_id(int *id, int socket)
     return EXIT_SUCCESS;
 }
 
-int move(int direction, int * status, int socket)
+int move(int direction, int *status, int socket)
 {
     char message[MESSAGE_LENGTH];
 
@@ -29,11 +32,11 @@ int move(int direction, int * status, int socket)
         return EXIT_FAILURE;
     if (get_message(message, socket))
         return EXIT_FAILURE;
-    *status=message[0] == OK ? CMD_OK : CMD_KO;
+    *status = message[0] == OK ? CMD_OK : CMD_KO;
     return EXIT_SUCCESS;
 }
 
-int quit(int * status, int socket)
+int quit(int *status, int socket)
 {
     char message[MESSAGE_LENGTH];
 
@@ -42,6 +45,40 @@ int quit(int * status, int socket)
         return EXIT_FAILURE;
     if (get_message(message, socket))
         return EXIT_FAILURE;
-    *status=message[0] == OK ? CMD_OK : CMD_KO;
+    *status = message[0] == OK ? CMD_OK : CMD_KO;
     return CMD_KO;
+}
+
+//////////////////////////////////////////////////////
+// Mapper command
+
+int set_cell(int col, int row, int content, int socket)
+{
+    char message[MESSAGE_LENGTH];
+
+    sprintf(message, "s %d %d %d_", col, row, content);
+    if (send_message(message, socket))
+        return EXIT_FAILURE;
+    return EXIT_SUCCESS;
+}
+
+//////////////////////////////////////////////////////
+// Simulator command
+
+int set_id(int id, int socket)
+{
+    char message[MESSAGE_LENGTH];
+    sprintf(message, "%d_", id);
+    if (send_message(message, socket))
+        return EXIT_FAILURE;
+    return EXIT_SUCCESS;
+}
+
+int send_status(char status, int socket)
+{
+    char message[MESSAGE_LENGTH];
+    sprintf(message, "%c_", status);
+    if (send_message(message, socket))
+        return EXIT_FAILURE;
+    return EXIT_SUCCESS;
 }

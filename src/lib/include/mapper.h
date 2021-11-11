@@ -41,9 +41,10 @@ struct s_pos {
 typedef struct s_cell t_cell; // cell of the matrix (map)
 typedef struct s_pos t_pos;   // position inside the matrix
 
-t_cell  **gen_map(int, int);     
-void    display_map(t_cell **, int); // display map to debug purpose
-void    init_map(t_cell **, int, int);    // init a exiting map
+t_cell  ** gen_map(int, int);     
+void       display_map(t_cell **, int, int); // display map to debug purpose
+void       init_map(t_cell **, int, int);    // init a exiting map
+t_cell  ** load_map(char *, int *, int *, int *);
 #endif
 
 

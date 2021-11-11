@@ -81,6 +81,7 @@ void *connection_handler(void *socket)
 		sscanf(message, "%c %d %d %d", &cmd, &col, &row, &code);
 		move(row, col);
 		color_set(code+1, NULL);
+		//delay_output(1000);
 		addch(get_ascii(code));
 		refresh();
 	} while (message[0] != '\0');
