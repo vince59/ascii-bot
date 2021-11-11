@@ -7,6 +7,8 @@
 
 #define MOVE 'm'
 #define QUIT 'q'
+#define SCAN 's'
+
 #define C_OK 'o'
 #define C_KO 'k'
 
@@ -19,3 +21,4 @@ int get_id(int *, int);
 int set_cell(int, int, int, int);
 int set_id(int, int);
 int send_status(char, int);
+int scan(int [], int );

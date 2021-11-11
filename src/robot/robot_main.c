@@ -20,16 +20,13 @@
 #include "mapper.h"
 #include "basic_cmd.h"
 
+int test_using_keyboard(int);
+int test_detect(int);
+
 int main(int argc, char *argv[])
 {
 	char server[40];
-	int port, socket, id, status;
-
-	for (int i = -1; i < 3; i++)
-		if (!i)
-			printf("%d Oui\n", i);
-		else
-			printf("%d non\n", i);
+	int port, socket, id;
 
 	if (get_bot_param(argc, argv, server, &port))
 		return EXIT_FAILURE;
@@ -37,13 +34,34 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	if (get_id(&id, socket))
 		return EXIT_FAILURE;
+	printf("I'm robot #%d, and i'm in the map !\n", id);
+
+	test_detect(socket);
+
+	puts("Bye !\n");
+	close_comm(socket);
+	return EXIT_SUCCESS;
+}
+
+int test_detect(int socket)
+{
+	int detect[24];
+	if (scan(detect, socket))
+		return EXIT_FAILURE;
+	for (int i = 0; i < 8; i += 3)
+		printf("%d %d %d\n", detect[i], detect[i + 1], detect[i + 2]);
+	return EXIT_SUCCESS;
+}
+
+int test_using_keyboard(int socket)
+{
+	int status;
 	initscr();
 	/* enable pressing arrow key to generate KEY_xxx codes */
 	keypad(stdscr, TRUE);
 	timeout(100);
 	noecho();
 
-	printf("I'm robot #%d, and i'm in the map !\n", id);
 	do
 	{
 		int ch = getch();
@@ -54,7 +72,7 @@ int main(int argc, char *argv[])
 			break;
 
 		switch (ch)
-		{ 
+		{
 		case KEY_UP:
 			if (go_to(N, &status, socket))
 				return EXIT_FAILURE;
@@ -75,10 +93,8 @@ int main(int argc, char *argv[])
 
 	} while (1);
 
+	endwin();
 	if (quit(&status, socket))
 		return EXIT_FAILURE;
-	endwin();
-	puts("Bye !\n");
-	close_comm(socket);
 	return EXIT_SUCCESS;
 }
