@@ -6,10 +6,13 @@
 */
 
 #define MOVE 'm'
+#define QUIT 'q'
 #define OK   'o'
 #define KO   'k'
 
-#define CMD_OK 2
-#define CMD_KO 3
+#define CMD_OK 1
+#define CMD_KO 0
 
-int move(int, int);
+int move(int, int *,int);
+int quit(int *,int);
+int get_id(int *, int);

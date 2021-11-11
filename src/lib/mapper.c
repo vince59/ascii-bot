@@ -10,20 +10,20 @@
 #include "mapper.h"
 
 // allocate memory to a new map
-t_cell_struct **gen_map(int row, int col)
+t_cell**gen_map(int row, int col)
 {
-    t_cell_struct **matrix;
+    t_cell **matrix;
     int c;
 
-    matrix = malloc(sizeof(t_cell_struct *) * col);
+    matrix = malloc(sizeof(t_cell*) * col);
     for (c = 0; c < col; c++)
-        matrix[c] = malloc(sizeof(t_cell_struct) * row);
+        matrix[c] = malloc(sizeof(t_cell) * row);
 
     return matrix;
 }
 
 // display map to debug purpose
-void display_map(t_cell_struct **matrix, int size)
+void display_map(t_cell **matrix, int size)
 {
     int l, c;
 
@@ -37,7 +37,7 @@ void display_map(t_cell_struct **matrix, int size)
 }
 
 // init a exiting map
-void init_map(t_cell_struct **matrix, int row, int col)
+void init_map(t_cell **matrix, int row, int col)
 {
     int l, c;
 
@@ -49,5 +49,5 @@ void init_map(t_cell_struct **matrix, int row, int col)
         }
     }
 
-    matrix[4][7].obstacle = ROBOT;
+    matrix[9][2].obstacle = OBSTACLE;
 }

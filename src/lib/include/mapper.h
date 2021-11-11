@@ -9,9 +9,15 @@
 #define MAPPER_H
 
 // obstacle type inside the matrix
-#define FREE     1
-#define OBSTACLE 2
-#define ROBOT    3
+#define ROBOT1   0
+#define ROBOT2   1
+#define ROBOT3   2
+#define ROBOT4   3
+#define ROBOT5   4
+
+#define FREE     5
+#define OBSTACLE 6
+
 
 // orientation
 #define N  0  // Nord
@@ -23,21 +29,21 @@
 #define O  6  // Ouest
 #define NO 7  // Nord Ouest
 
-struct s_cell_struct {
+struct s_cell {
     int obstacle;
 };
 
-struct s_pos_struct {
-	int x,y;
+struct s_pos {
+	int c,l;
 	int orientation;
 };
 
-typedef struct s_cell_struct t_cell_struct; // cell of the matrix (map)
-typedef struct s_pos_struct t_pos_struct;   // position inside the matrix
+typedef struct s_cell t_cell; // cell of the matrix (map)
+typedef struct s_pos t_pos;   // position inside the matrix
 
-t_cell_struct  **gen_map(int, int);     
-void           display_map(t_cell_struct **, int); // display map to debug purpose
-void           init_map(t_cell_struct **, int, int);    // init a exiting map
+t_cell  **gen_map(int, int);     
+void    display_map(t_cell **, int); // display map to debug purpose
+void    init_map(t_cell **, int, int);    // init a exiting map
 #endif
 
 

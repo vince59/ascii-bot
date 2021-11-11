@@ -1,7 +1,7 @@
 /*
 ** Ascii bot, 2021
 ** utils.h
-** Socket management
+** Useful functions
 */
 
 #ifndef UTILS_H

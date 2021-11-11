@@ -16,6 +16,7 @@ libsystem.a: $(OBJ)
 
 clean:
 	@rm -rf *.o
+	@rm -rf *.a
 
 mrproper: clean
 	@rm -rf $(LIB)

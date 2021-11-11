@@ -20,21 +20,32 @@
 
 int main(int argc, char *argv[])
 {
-	char message[MESSAGE_LENGTH];
 	char server[40];
-	int port, socket, result;
+	int port, socket, id, status;
+
+	for (int i=-1; i<3; i++)
+		if (!i)
+			printf("%d Oui\n",i);
+		else	
+			printf("%d non\n",i);
 
 	if (get_bot_param(argc, argv, server, &port))
 		return EXIT_FAILURE;
 	if (open_comm(server, port, &socket))
 		return EXIT_FAILURE;
-	
+	if (get_id(&id,socket))
+		return EXIT_FAILURE;
+
+	printf("I'm robot #%d, and i'm in the map !\n",id);
 	do {
-		if ((result=move(N,socket)))
+		if (move(N,&status,socket))
+			return EXIT_FAILURE;
+	} while (status!=CMD_KO);
+
+	if (quit(&status,socket))
 			return EXIT_FAILURE;
 
-	} while (result!=CMD_KO);
-
+	puts("Bye !\n");
 	close_comm(socket);
 	return EXIT_SUCCESS;
 }

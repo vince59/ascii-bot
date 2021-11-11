@@ -53,6 +53,7 @@ int close_comm(int socket_desc)
 // Write on TCP socket
 int send_message(const char *message, int socket_desc)
 {
+	//printf(">%s\n",message);
 	if (send(socket_desc, message, strlen(message), 0) < 0)
 	{
 		puts("Send failed\n");
@@ -76,6 +77,7 @@ int get_message(char *message, int socket_desc)
 		message[i++]=buffer[0];
 	} while (buffer[0] != '_' && buffer[0] !='\0');
 	message[--i]='\0';
+	//printf("<%s\n",message);
 	return EXIT_SUCCESS;
 }
 

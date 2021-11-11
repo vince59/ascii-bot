@@ -17,6 +17,7 @@
 #include "network.h"
 #include "utils.h"
 #include "mapper.h"
+#include "simulator.h"
 
 void *connection_handler(void *);
 
@@ -42,8 +43,10 @@ int get_ascii(int code)
 		return 32;
 	case OBSTACLE:
 		return 97 | A_ALTCHARSET;
-	case ROBOT:
-		return 88 | WA_TOP;
+	case ROBOT1:
+		return 49 | WA_TOP;
+	case ROBOT2:
+		return 50 | WA_TOP;
 	}
 	return '?';
 }
@@ -63,10 +66,12 @@ void *connection_handler(void *socket)
 	initscr();
 	start_color();
 
-	init_pair(FREE, COLOR_BLUE, COLOR_BLUE);
-	init_pair(OBSTACLE, COLOR_RED, COLOR_RED);
-	init_pair(ROBOT, COLOR_WHITE, COLOR_BLUE);
+	
+	for (int r=1; r<=MAX_ROBOT; r++)
+		init_pair(r, COLOR_WHITE, COLOR_BLUE);
 
+	init_pair(FREE+1, COLOR_BLUE, COLOR_BLUE);
+	init_pair(OBSTACLE+1, COLOR_RED, COLOR_RED);
 	//getmaxyx(stdscr, mrow, mcol);
 	curs_set(0);
 	do
@@ -75,7 +80,7 @@ void *connection_handler(void *socket)
 			break;
 		sscanf(message, "%c %d %d %d", &cmd, &col, &row, &code);
 		move(row, col);
-		color_set(code, NULL);
+		color_set(code+1, NULL);
 		addch(get_ascii(code));
 		refresh();
 	} while (message[0] != '\0');
