@@ -47,6 +47,8 @@ int get_ascii(int code)
 		return 49 | WA_TOP;
 	case ROBOT2:
 		return 50 | WA_TOP;
+	case TARGET:
+		return 84 | WA_TOP;
 	}
 	return '?';
 }
@@ -66,12 +68,12 @@ void *connection_handler(void *socket)
 	initscr();
 	start_color();
 
-	
 	for (int r=1; r<=MAX_ROBOT; r++)
 		init_pair(r, COLOR_WHITE, COLOR_BLUE);
 
 	init_pair(FREE+1, COLOR_BLUE, COLOR_BLUE);
 	init_pair(OBSTACLE+1, COLOR_RED, COLOR_RED);
+	init_pair(TARGET+1, COLOR_BLACK, COLOR_YELLOW);
 	//getmaxyx(stdscr, mrow, mcol);
 	curs_set(0);
 	do

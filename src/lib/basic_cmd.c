@@ -50,26 +50,16 @@ int quit(int *status, int socket)
     return CMD_KO;
 }
 
-int scan(int detect[], int socket)
+int scan(int dir, int *dist, int *info, int socket)
 {
     char message[MESSAGE_LENGTH];
-    char format[255] = "";
-    for (int i = 0; i < 24; i++)
-        strcat(format, "%d ");
 
-    sprintf(message, "%c_", SCAN);
+    sprintf(message, "%c %d_", SCAN, dir);
     if (send_message(message, socket))
         return EXIT_FAILURE;
     if (get_message(message, socket))
         return EXIT_FAILURE;
-    sscanf(message, format,
-           detect[0], detect[1], detect[2], detect[3],
-           detect[4], detect[5], detect[6], detect[7],
-           detect[8], detect[9], detect[10], detect[11],
-           detect[12], detect[13], detect[14], detect[15],
-           detect[16], detect[17], detect[18], detect[19],
-           detect[20], detect[21], detect[22], detect[23],
-           detect[24]);
+    sscanf(message, "%d %d", dist, info);
     return EXIT_SUCCESS;
 }
 

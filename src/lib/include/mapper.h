@@ -17,6 +17,7 @@
 
 #define FREE 5
 #define OBSTACLE 6
+#define TARGET 7
 
 // orientation
 #define N 0	 // Nord

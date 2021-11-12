@@ -121,8 +121,19 @@ void *connection_handler(void *socket)
 			}
 
 			break;
-		case SCAN :
-			if (send_message("1 2 0 3 4 0 5 6 0 7 8 0 9 10 0 11 12 0 13 14 0 15 16 0 1 2 1 3 4 1 5 6 1 7 8 1 9 10 1 11 12 1 13 14 1 15 16 1_", sock))
+		case SCAN:
+			sscanf(message, "%c %d", &cmd, &dir);
+			int out = 0, detected = 0, dist;
+			for (dist = 1; dist<=MAX_SCAN_DIST; dist++)
+			{
+				get_next_cell(dir, &l, &c);
+				if ((out = (l < 0 || c < 0 || l >= map.max_l || c >= map.max_c)))
+					break;
+				if ( (detected=(map.map[c][l].obstacle != FREE)))
+					break;
+			}
+			sprintf(message, "%d %d_", dist, detected ? map.map[c][l].obstacle : detected);
+			if (send_message(message, sock))
 				return NULL;
 			break;
 		default:
@@ -174,69 +185,71 @@ int get_next_cell(int dir, int *l, int *c)
 
 int load_map(char *file_name)
 {
-    int c;
-    FILE *file;
-    file = fopen(file_name, "r");
-    map.max_l = 0;
-    map.max_c = 0;
-    map.max_robots=0;
-    if (file)
-    {
-        while ((c = getc(file)) != EOF)
-        {
-            if (c == '\n')
-            {
-                map.max_l++;
-            }
-            else
-            {
-                if (map.max_l == 0)
-                    map.max_c++;
-                if (c != ' ' && c != 'X')
-                    map.max_robots++;
-            }
-        }
-        printf("Max rows = %d, max cols = %d, max bots = %d\n", map.max_l, map.max_c, map.max_robots);
-        map.map = gen_map(map.max_l, map.max_c);
-	    init_map(map.map, map.max_l, map.max_c);
-        
-        rewind(file);
-        int col=0, row=0;
+	int c;
+	FILE *file;
+	file = fopen(file_name, "r");
+	map.max_l = 0;
+	map.max_c = 0;
+	map.max_robots = 0;
+	if (file)
+	{
+		while ((c = getc(file)) != EOF)
+		{
+			if (c == '\n')
+			{
+				map.max_l++;
+			}
+			else
+			{
+				if (map.max_l == 0)
+					map.max_c++;
+				if (c != ' ' && c != 'X')
+					map.max_robots++;
+			}
+		}
+		printf("Max rows = %d, max cols = %d, max bots = %d\n", map.max_l, map.max_c, map.max_robots);
+		map.map = gen_map(map.max_l, map.max_c);
+		init_map(map.map, map.max_l, map.max_c);
 
-        while ((c = getc(file)) != EOF)
-        {
-            switch (c) 
-            {
-                case '\n' : 
-                    col=0;
-                    row++;
-                    break;
-                case 'X' :
-                    map.map[col++][row].obstacle = OBSTACLE;
-                    break;
-                case '0' :
-					map.robots[0].l=row;
-					map.robots[0].c=col;
-                    map.map[col++][row].obstacle = 0;
-                    break;
-                case '1' :
-					map.robots[1].l=row;
-					map.robots[1].c=col;
-                    map.map[col++][row].obstacle = 1;
-                    break;
-                default :
-                    col++;
+		rewind(file);
+		int col = 0, row = 0;
 
-            }
-        }
+		while ((c = getc(file)) != EOF)
+		{
+			switch (c)
+			{
+			case '\n':
+				col = 0;
+				row++;
+				break;
+			case 'X':
+				map.map[col++][row].obstacle = OBSTACLE;
+				break;
+			case '0':
+				map.robots[0].l = row;
+				map.robots[0].c = col;
+				map.map[col++][row].obstacle = 0;
+				break;
+			case '1':
+				map.robots[1].l = row;
+				map.robots[1].c = col;
+				map.map[col++][row].obstacle = 1;
+				break;
+			case 'T':
+				map.map[col++][row].obstacle = TARGET;
+				break;
+			default:
+				col++;
+			}
+		}
 
-        fclose(file);
-    }
-    else
-    {
-        puts("Error when loding map, check map file path\n");
-        return EXIT_FAILURE;
-    }
+		fclose(file);
+	}
+	else
+	{
+		puts("Error when loding map, check map file path\n");
+		return EXIT_FAILURE;
+	}
 
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }

@@ -5,6 +5,8 @@
 ** 
 */
 
+#define MAX_SCAN_DIST 7
+
 #define MOVE 'm'
 #define QUIT 'q'
 #define SCAN 's'
@@ -21,4 +23,4 @@ int get_id(int *, int);
 int set_cell(int, int, int, int);
 int set_id(int, int);
 int send_status(char, int);
-int scan(int [], int );
+int scan(int, int *, int *, int);

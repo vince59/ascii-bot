@@ -45,11 +45,14 @@ int main(int argc, char *argv[])
 
 int test_detect(int socket)
 {
-	int detect[24];
-	if (scan(detect, socket))
-		return EXIT_FAILURE;
-	for (int i = 0; i < 8; i += 3)
-		printf("%d %d %d\n", detect[i], detect[i + 1], detect[i + 2]);
+	int dist, info;
+
+	for (int dir = 0; dir < 8; dir++)
+	{
+		if (scan(dir, &dist, &info, socket))
+			return EXIT_FAILURE;
+		printf("Direction = %d, distance = %d, info = %d\n", dir, dist, info);
+	}
 	return EXIT_SUCCESS;
 }
 
