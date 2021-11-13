@@ -64,12 +64,15 @@ void *connection_handler(void *socket)
 	char message[MESSAGE_LENGTH], cmd;
 
 	int bot_id = map.nb_robots++;
+	/*
 	if (bot_id >= map.max_robots)
 	{
 		printf("Connection refused, too many robots, max = %d", map.max_robots);
 		return NULL;
 	}
+	*/
 
+	bot_id=0;
 	if (set_id(bot_id, sock))
 		return NULL;
 
