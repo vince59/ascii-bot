@@ -23,6 +23,21 @@ t_cell **gen_map(int row, int col)
     return matrix;
 }
 
+t_cell **add_col(t_cell ** matrix, int col, int nb_col)
+{
+    return nb_col>0 ? realloc(matrix, sizeof(t_cell *) * (col+nb_col)) : matrix;
+}
+
+t_cell **add_row(t_cell ** matrix, int col, int row, int nb_row)
+{
+    int c;
+    if (nb_row>0)
+    for (c = 0; c < col; c++)
+        matrix[c] = realloc(matrix[c],sizeof(t_cell) * (row + nb_row));
+
+    return matrix;
+}
+
 // display map to debug purpose
 void display_map(t_cell **matrix, int row, int col)
 {

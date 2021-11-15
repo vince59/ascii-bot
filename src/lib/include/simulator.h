@@ -15,7 +15,7 @@ struct s_map
 {
     t_cell **map;
     t_pos robots[MAX_ROBOT];
-    int nb_robots, max_l, max_c, mapper_socket, max_robots;
+    int nb_robots, max_l, max_c, mapper_socket, max_robots, l, c;
 };
 
 typedef struct s_map t_map;

@@ -19,45 +19,85 @@
 #include "utils.h"
 #include "mapper.h"
 #include "basic_cmd.h"
+#include "robot.h"
+#include "simulator.h"
 
-int test_using_keyboard(int);
-int test_detect(int);
-int test_find_target(int socket);
-int find_target(int *, int *, int);
+t_map map;
+int move_to(int direction, int *status, int sim_socket);
 
 int main(int argc, char *argv[])
 {
-	char server[40];
-	int port, socket, id;
 
-	if (get_bot_param(argc, argv, server, &port))
+map.l=1;
+map.c=1;
+
+map.map = gen_map(map.l, map.c);
+
+map.map[map.l-1][map.c-1].obstacle=ROBOT1;
+
+display_map(map.map, map.l, map.c);
+
+map.map=add_col(map.map, map.c, 3);
+
+
+map.c+=3;
+puts("****\n");
+display_map(map.map, map.l, map.c);
+
+map.map=add_row(map.map, map.c, map.l, 2);
+
+map.l+=2;
+
+display_map(map.map, map.l, map.c);
+
+
+
+	return EXIT_SUCCESS;
+	char sim_srv[40], mapper_srv[40];
+	int sim_port, mapper_port, sim_socket, mapper_socket = 0, id;
+
+	if (get_bot_param(argc, argv, sim_srv, &sim_port, mapper_srv, &mapper_port))
 		return EXIT_FAILURE;
-	if (open_comm(server, port, &socket))
+	if (mapper_port > 0)
+	{
+		if (open_comm(mapper_srv, mapper_port, &mapper_socket))
+			return EXIT_FAILURE;
+	}
+	if (open_comm(sim_srv, sim_port, &sim_socket))
 		return EXIT_FAILURE;
-	if (get_id(&id, socket))
+	if (get_id(&id, sim_socket))
 		return EXIT_FAILURE;
 	printf("I'm robot #%d, and i'm in the map !\n", id);
 
-	test_find_target(socket);
+	test_find_target(sim_socket, mapper_socket);
 
 	puts("Bye !\n");
-	close_comm(socket);
+	close_comm(sim_socket);
+	if (mapper_socket > 0)
+		close_comm(mapper_socket);
 	return EXIT_SUCCESS;
 }
 
-int test_find_target(int socket)
+int test_find_target(int sim_socket, int mapper_socket)
 {
+	map.max_c = map.max_l = map.l = map.c = 1;
+	map.map = gen_map(map.max_l, map.max_c);
+	map.mapper_socket = mapper_socket;
+
+	if (set_cell(map.max_c, map.max_l, ROBOT1, map.mapper_socket))
+		return EXIT_FAILURE;
+
 	int dir, dist, info, status;
 	do
 	{
-		if (find_target(&dir, &dist, socket))
+		if (find_target(&dir, &dist, sim_socket))
 			return EXIT_FAILURE;
 		if (dir > -1)
 		{
 			printf("Target localized at %d %d\n", dir, dist);
 			do
 			{
-				if (go_to(dir, &status, socket))
+				if (go_to(dir, &status, sim_socket))
 					return EXIT_FAILURE;
 			} while (status == CMD_OK);
 			puts("Target catched !\n");
@@ -65,92 +105,25 @@ int test_find_target(int socket)
 		}
 		for (int d = 0; d < 8; d++)
 		{
-			if (scan(d, &dist, &info, socket))
+			if (scan(d, &dist, &info, sim_socket))
 				return EXIT_FAILURE;
-			if (info == 0 || (info==OBSTACLE && dist>2))
+			if (info == 0 || (info == OBSTACLE && dist > 2))
 			{
 				dir = d;
 				break;
 			}
 		}
-		if (go_to(dir, &status, socket))
+		if (go_to(dir, &status, sim_socket))
 			return EXIT_FAILURE;
 	} while (1);
 	return EXIT_SUCCESS;
 }
 
-int find_target(int *dir, int *dist, int socket)
+int move_to(int direction, int *status, int sim_socket)
 {
-	int info;
-	*dir = *dist = -1;
-	for (int d = 0; d < 8; d++)
-	{
-		if (scan(d, dist, &info, socket))
-			return EXIT_FAILURE;
-		if (info == TARGET)
-		{
-			*dir = d;
-			break;
-		}
-	}
-	return EXIT_SUCCESS;
-}
 
-int test_detect(int socket)
-{
-	int dist, info;
-
-	for (int dir = 0; dir < 8; dir++)
-	{
-		if (scan(dir, &dist, &info, socket))
-			return EXIT_FAILURE;
-		printf("Direction = %d, distance = %d, info = %d\n", dir, dist, info);
-	}
-	return EXIT_SUCCESS;
-}
-
-int test_using_keyboard(int socket)
-{
-	int status;
-	initscr();
-	/* enable pressing arrow key to generate KEY_xxx codes */
-	keypad(stdscr, TRUE);
-	timeout(100);
-	noecho();
-
-	do
-	{
-		int ch = getch();
-		/* if no key was waiting, ignore */
-		if (ERR == ch)
-			continue;
-		if ('q' == ch)
-			break;
-
-		switch (ch)
-		{
-		case KEY_UP:
-			if (go_to(N, &status, socket))
-				return EXIT_FAILURE;
-			break;
-		case KEY_DOWN:
-			if (go_to(S, &status, socket))
-				return EXIT_FAILURE;
-			break;
-		case KEY_RIGHT:
-			if (go_to(E, &status, socket))
-				return EXIT_FAILURE;
-			break;
-		case KEY_LEFT:
-			if (go_to(O, &status, socket))
-				return EXIT_FAILURE;
-			break;
-		}
-
-	} while (1);
-
-	endwin();
-	if (quit(&status, socket))
+	if (go_to(direction, status, sim_socket))
 		return EXIT_FAILURE;
+
 	return EXIT_SUCCESS;
 }

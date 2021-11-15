@@ -5,6 +5,9 @@
 ** 
 */
 
+#ifndef BASIC_CMD_H
+#define BASIC_CMD_H
+
 #define MAX_SCAN_DIST 7
 
 #define MOVE 'm'
@@ -24,3 +27,5 @@ int set_cell(int, int, int, int);
 int set_id(int, int);
 int send_status(char, int);
 int scan(int, int *, int *, int);
+
+#endif

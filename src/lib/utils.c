@@ -6,38 +6,49 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h> 
+#include <string.h>
 #include <unistd.h>
 #include <time.h>
 
 #include "utils.h"
 
-extern  char * optarg;
+extern char *optarg;
 
-int get_bot_param(int argc, char *argv[], char *server, int *port)
+int get_bot_param(int argc, char *argv[], char *sim_server, int *sim_port, char *mapper_server, int *mapper_port)
 {
 	int c;
-	*port = 0;
-	server = strcpy(server, "?");
-	char usage[80]; 
-	sprintf(usage,"Usage : %s -s ip -p port\nex : %s -s 127.0.0.1 -p 8888\n",argv[0],argv[0]);
+	*sim_port = 0;
+	sim_server = strcpy(sim_server, "?");
+	mapper_server = strcpy(mapper_server, "?");
+	*mapper_port = 0;
 
-	while ((c = getopt(argc, argv, "s:p:")) != -1)
+	char usage[200];
+	sprintf(usage, "Usage : %s -s simulator_ip -p simulator_port\nex : %s -s 127.0.0.1 -p 8888 -m 127.0.0.1 -o 8890\n", argv[0], argv[0]);
+
+	while ((c = getopt(argc, argv, "s:p:m:o:")) != -1)
 	{
 		switch (c)
 		{
 		case 's':
-			server = strcpy(server, optarg);
+			sim_server = strcpy(sim_server, optarg);
 			break;
 		case 'p':
-			*port = atoi(optarg);
+			*sim_port = atoi(optarg);
+			break;
+		case 'm':
+			mapper_server = strcpy(mapper_server, optarg);
+			break;
+		case 'o':
+			*mapper_port = atoi(optarg);
 			break;
 		default:
 			puts(usage);
 			return EXIT_FAILURE;
 		}
 	}
-	if (server[0] == '?' || *port == 0)
+	if ((sim_server[0] == '?' || *sim_port == 0) ||
+		((mapper_server[0] != '?' && *mapper_port == 0) ||
+		 (mapper_server[0] == '?' && *mapper_port != 0)))
 	{
 		puts(usage);
 		return EXIT_FAILURE;
@@ -49,8 +60,8 @@ int get_mapper_param(int argc, char *argv[], int *port)
 {
 	int c;
 	*port = 0;
-	char usage[80]; 
-	sprintf(usage,"Usage : %s -p port\nex : %s -p 8889\n",argv[0],argv[0]);
+	char usage[80];
+	sprintf(usage, "Usage : %s -p port\nex : %s -p 8889\n", argv[0], argv[0]);
 	while ((c = getopt(argc, argv, "p:")) != -1)
 	{
 		switch (c)
@@ -71,15 +82,15 @@ int get_mapper_param(int argc, char *argv[], int *port)
 	return EXIT_SUCCESS;
 }
 
-int get_srv_param(int argc, char *argv[], int *srv_port, char* mapper_srv, int *mapper_port, char *map_file)
+int get_srv_param(int argc, char *argv[], int *srv_port, char *mapper_srv, int *mapper_port, char *map_file)
 {
 	int c;
 	char usage[200];
 
 	*srv_port = *mapper_port = 0;
-	mapper_srv = strcpy(mapper_srv, "?"); 
+	mapper_srv = strcpy(mapper_srv, "?");
 	map_file = strcpy(map_file, "?");
-	sprintf(usage,"Usage : %s -p simultor_port -s mapper_server -l mapper_port -m map\nex : %s -p 8888 -s 127.0.0.1 -l 8889 -m ./demo.map\n",argv[0],argv[0]);
+	sprintf(usage, "Usage : %s -p simultor_port -s mapper_server -l mapper_port -m map\nex : %s -p 8888 -s 127.0.0.1 -l 8889 -m ./demo.map\n", argv[0], argv[0]);
 	while ((c = getopt(argc, argv, "s:p:l:m:")) != -1)
 	{
 		switch (c)
@@ -111,6 +122,6 @@ int get_srv_param(int argc, char *argv[], int *srv_port, char* mapper_srv, int *
 
 void short_wait()
 {
-    struct timespec sleeptime = {0, (long)NODE_WAIT};
-    nanosleep(&sleeptime, NULL);
+	struct timespec sleeptime = {0, (long)NODE_WAIT};
+	nanosleep(&sleeptime, NULL);
 }
