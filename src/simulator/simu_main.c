@@ -126,16 +126,20 @@ void *connection_handler(void *socket)
 			break;
 		case SCAN:
 			sscanf(message, "%c %d", &cmd, &dir);
-			int out = 0, detected = 0, dist;
+			int detected, dist;
 			for (dist = 1; dist<=MAX_SCAN_DIST; dist++)
 			{
 				get_next_cell(dir, &l, &c);
-				if ((out = (l < 0 || c < 0 || l >= map.max_l || c >= map.max_c)))
+				if (l < 0 || c < 0 || l >= map.max_l || c >= map.max_c)
+				{
+					detected=OBSTACLE;
 					break;
-				if ( (detected=(map.map[c][l].obstacle != FREE)))
+				}
+				detected=map.map[c][l].obstacle;
+				if ( (detected != FREE)))
 					break;
 			}
-			sprintf(message, "%d %d_", dist, detected ? map.map[c][l].obstacle : detected);
+			sprintf(message, "%d %d_", dist, detected);
 			if (send_message(message, sock))
 				return NULL;
 			break;

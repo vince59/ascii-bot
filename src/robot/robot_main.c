@@ -27,32 +27,6 @@ int move_to(int direction, int *status, int sim_socket);
 
 int main(int argc, char *argv[])
 {
-
-map.l=1;
-map.c=1;
-
-map.map = gen_map(map.l, map.c);
-
-map.map[map.l-1][map.c-1].obstacle=ROBOT1;
-
-display_map(map.map, map.l, map.c);
-
-map.map=add_col(map.map, map.c, 3);
-
-
-map.c+=3;
-puts("****\n");
-display_map(map.map, map.l, map.c);
-
-map.map=add_row(map.map, map.c, map.l, 2);
-
-map.l+=2;
-
-display_map(map.map, map.l, map.c);
-
-
-
-	return EXIT_SUCCESS;
 	char sim_srv[40], mapper_srv[40];
 	int sim_port, mapper_port, sim_socket, mapper_socket = 0, id;
 
@@ -82,6 +56,8 @@ int test_find_target(int sim_socket, int mapper_socket)
 {
 	map.max_c = map.max_l = map.l = map.c = 1;
 	map.map = gen_map(map.max_l, map.max_c);
+
+	map.map[0][0].obstacle = ROBOT1;
 	map.mapper_socket = mapper_socket;
 
 	if (set_cell(map.max_c, map.max_l, ROBOT1, map.mapper_socket))
@@ -103,7 +79,11 @@ int test_find_target(int sim_socket, int mapper_socket)
 			puts("Target catched !\n");
 			return EXIT_SUCCESS;
 		}
-		for (int d = 0; d < 8; d++)
+
+		if (scan(N, &dist, &info, sim_socket))
+				return EXIT_FAILURE;
+		
+		/*for (int d = 0; d < 8; d++)
 		{
 			if (scan(d, &dist, &info, sim_socket))
 				return EXIT_FAILURE;
@@ -112,7 +92,7 @@ int test_find_target(int sim_socket, int mapper_socket)
 				dir = d;
 				break;
 			}
-		}
+		}*/
 		if (go_to(dir, &status, sim_socket))
 			return EXIT_FAILURE;
 	} while (1);

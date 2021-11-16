@@ -46,7 +46,6 @@ typedef struct s_pos t_pos;	  // position inside the matrix
 t_cell **gen_map(int, int);
 void display_map(t_cell **, int, int); // display map to debug purpose
 void init_map(t_cell **, int, int);	   // init a exiting map
-t_cell **add_col(t_cell ** , int , int );
-t_cell **add_row(t_cell ** , int , int , int );
+t_cell **enlarge_map(t_cell **, int, int, int, int);
 
 #endif

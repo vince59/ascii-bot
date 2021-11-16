@@ -23,17 +23,13 @@ t_cell **gen_map(int row, int col)
     return matrix;
 }
 
-t_cell **add_col(t_cell ** matrix, int col, int nb_col)
+t_cell **enlarge_map(t_cell **matrix, int l, int c,int row, int col)
 {
-    return nb_col>0 ? realloc(matrix, sizeof(t_cell *) * (col+nb_col)) : matrix;
-}
+    int i;
 
-t_cell **add_row(t_cell ** matrix, int col, int row, int nb_row)
-{
-    int c;
-    if (nb_row>0)
-    for (c = 0; c < col; c++)
-        matrix[c] = realloc(matrix[c],sizeof(t_cell) * (row + nb_row));
+    matrix = realloc(matrix, sizeof(t_cell *) * (col+c));
+    for (i = 0; i < (c+col); i++)
+        matrix[i] = realloc(matrix[i],sizeof(t_cell) * (row+l));
 
     return matrix;
 }
