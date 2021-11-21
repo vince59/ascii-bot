@@ -90,13 +90,220 @@ int test_matrix()
 	return EXIT_SUCCESS;
 }
 
-int update_map()
+int update_debug_map()
 {
 	for (int l = 0; l < map.max_l; l++)
 		for (int c = 0; c < map.max_c; c++)
 			if (set_cell(c, l, map.map[c][l].content, map.mapper_socket))
 				return EXIT_FAILURE;
 	return EXIT_SUCCESS;
+}
+
+void update_map_N(int dist)
+{
+	int l = map.l - dist;
+	if (l < 0)
+	{
+		l = -l;
+		map.map = insert_rows(map.map, map.max_l, map.max_c, l);
+		map.max_l += l;
+		map.l += l;
+	}
+}
+
+void update_map_E(int dist)
+{
+	int c = map.c + 1 + dist;
+	if (c > map.max_c)
+	{
+		c = c - map.max_c;
+		map.map = add_cols(map.map, map.max_l, map.max_c, c);
+		map.max_c += c;
+	}
+}
+
+void update_map_S(int dist)
+{
+	int l = map.l + 1 + dist;
+	if (l > map.max_l)
+	{
+		l = l - map.max_l;
+		map.map = add_rows(map.map, map.max_l, map.max_c, l);
+		map.max_l += l;
+	}
+}
+
+void update_map_O(int dist)
+{
+	int c = map.c - dist;
+	if (c < 0)
+	{
+		c = -c;
+		map.map = insert_cols(map.map, map.max_l, map.max_c, c);
+		map.max_c += c;
+		map.c += c;
+	}
+}
+
+int update_map(int sim_socket)
+{
+	int dist, info;
+	for (int d = 0; d < 8; d++)
+	{
+		if (scan(d, &dist, &info, sim_socket))
+			return EXIT_FAILURE;
+		switch (d)
+		{
+		case N:
+			update_map_N(dist);
+			for (int i = 1; i < dist; i++)
+				map.map[map.c][map.l - i].content = FREE;
+			map.map[map.c][map.l - dist].content = info;
+			break;
+		case NE:
+			update_map_N(dist);
+			update_map_E(dist);
+			for (int i = 1; i < dist; i++)
+				map.map[map.c + i][map.l - i].content = FREE;
+			map.map[map.c + dist][map.l - dist].content = info;
+			break;
+		case E:
+			update_map_E(dist);
+			for (int i = 1; i < dist; i++)
+				map.map[map.c + i][map.l].content = FREE;
+			map.map[map.c + dist][map.l].content = info;
+			break;
+		case SE:
+			update_map_S(dist);
+			update_map_E(dist);
+			for (int i = 1; i < dist; i++)
+				map.map[map.c + i][map.l + i].content = FREE;
+			map.map[map.c + dist][map.l + dist].content = info;
+			break;
+		case S:
+			update_map_S(dist);
+			for (int i = 1; i < dist; i++)
+				map.map[map.c][map.l + i].content = FREE;
+			map.map[map.c][map.l + dist].content = info;
+			break;
+		case SO:
+			update_map_S(dist);
+			update_map_O(dist);
+			for (int i = 1; i < dist; i++)
+				map.map[map.c - i][map.l + i].content = FREE;
+			map.map[map.c - dist][map.l + dist].content = info;
+			break;
+		case O:
+			update_map_O(dist);
+			for (int i = 1; i < dist; i++)
+				map.map[map.c - i][map.l].content = FREE;
+			map.map[map.c - dist][map.l].content = info;
+			break;
+		case NO:
+			update_map_N(dist);
+			update_map_O(dist);
+			for (int i = 1; i < dist; i++)
+				map.map[map.c - i][map.l - i].content = FREE;
+			map.map[map.c - dist][map.l - dist].content = info;
+			break;
+		default:
+			return EXIT_FAILURE;
+		}
+	}
+	if (update_debug_map())
+		return EXIT_FAILURE;
+	return EXIT_SUCCESS;
+}
+
+int find_uncleared_zone(int *nb_l, int *nb_c)
+{
+	int j = map.max_l > map.max_c ? map.max_l : map.max_c;
+	int l, c;
+
+	*nb_l = *nb_c = 0;
+	for (int i = 1; i < j; i++)
+	{
+		l = map.l + i;
+		c = map.c + i;
+		if (c < map.max_c && l < map.max_l)
+			if (map.map[c][l].content == UNKNOWN)
+			{
+				*nb_l = i;
+				*nb_c = i;
+				break;
+			}
+
+		l = map.l - i;
+		c = map.c - i;
+		if (c > 0 && l > 0)
+			if (map.map[c][l].content == UNKNOWN)
+			{
+				*nb_l = -i;
+				*nb_c = -i;
+				break;
+			}
+
+		l = map.l;
+		c = map.c - i;
+		if (c > 0)
+			if (map.map[c][l].content == UNKNOWN)
+			{
+				*nb_l = 0;
+				*nb_c = -i;
+				break;
+			}
+
+		l = map.l;
+		c = map.c + i;
+		if (c < map.max_c)
+			if (map.map[c][l].content == UNKNOWN)
+			{
+				*nb_l = 0;
+				*nb_c = +i;
+				break;
+			}
+
+		l = map.l + i;
+		c = map.c;
+		if (l < map.max_l)
+			if (map.map[c][l].content == UNKNOWN)
+			{
+				*nb_l = i;
+				*nb_c = 0;
+				break;
+			}
+
+		l = map.l - i;
+		c = map.c;
+		if (l > 0)
+			if (map.map[c][l].content == UNKNOWN)
+			{
+				*nb_l = -i;
+				*nb_c = 0;
+				break;
+			}
+
+		l = map.l - i;
+		c = map.c + i;
+		if (c < map.max_c && l > 0)
+			if (map.map[c][l].content == UNKNOWN)
+			{
+				*nb_l = -i;
+				*nb_c = +i;
+				break;
+			}
+
+		l = map.l + i;
+		c = map.c - i;
+		if (c > 0 && l < map.max_l)
+			if (map.map[c][l].content == UNKNOWN)
+			{
+				*nb_l = i;
+				*nb_c = -i;
+				break;
+			}
+	}
+	return (*nb_l == 0 && *nb_c == 0);
 }
 
 int test_find_target(int sim_socket, int mapper_socket)
@@ -108,104 +315,20 @@ int test_find_target(int sim_socket, int mapper_socket)
 	map.map[map.c][map.l].content = ROBOT1;
 	map.mapper_socket = mapper_socket;
 
-	int dist, info;
-
-	if (update_map())
-		return EXIT_FAILURE;
-
-	for (int d = 0; d < 8; d++)
+	for (;;)
 	{
-		if (scan(d, &dist, &info, sim_socket))
+		int l, c;
+		if (update_map(sim_socket))
 			return EXIT_FAILURE;
-		int l,c;
-		switch (d)
-		{
-		case N:
-			l = map.l - dist;
-			if (l < 0)
-			{
-				l = -l;
-				map.map = insert_rows(map.map, map.max_l, map.max_c, l);
-				map.max_l += l;
-				map.l += l;
-			}
-			for (int i = 1; i < dist; i++)
-				map.map[map.c][map.l - i].content = FREE;
-			map.map[map.c][map.l - dist].content = info;
-			break;
-		case NE:
-			break;
-		case E:
-			break;
-		case SE:
-			break;
-		case S:
-			l = map.l + 1 + dist;
-			if (l > map.max_l)
-			{
-				l = l - map.max_l;
 
-				map.map = add_rows(map.map, map.max_l, map.max_c, l);
-				map.max_l += l;
-			}
-			for (int i = 1; i < dist; i++)
-				map.map[map.c][map.l + i].content = FREE;
-			map.map[map.c][map.l + dist].content = info;
+		update_debug_map();
+		int toto=find_uncleared_zone(&l, &c);
+		printf ("%d %d %d\n",toto,l,c);
+		char s[30];
+		scanf("%s", s);
+		if (s[0] == 'q')
 			break;
-		case SO:
-			break;
-		case O:
-			printf("%d %d\n", dist, info);
-			c = map.c - dist;
-			if (c < 0)
-			{
-				c = -c;
-				map.map = insert_cols(map.map, map.max_l, map.max_c, c);
-				map.max_c += c;
-				map.c += c;
-			}
-			for (int i = 1; i < dist; i++)
-				map.map[map.c-i][map.l].content = FREE;
-			map.map[map.c-dist][map.l].content = info;
-			display_map(map.map, map.max_l, map.max_c);
-			break;
-		case NO:
-			break;
-		default:
-			return EXIT_FAILURE;
-		}
 	}
-
-	update_map();
-
-	char s[30];
-	scanf("%s", s);
-	return EXIT_SUCCESS;
-
-	int l = map.l - dist;
-	int nb_l;
-	if (l < 0)
-	{
-		nb_l = -l;
-	}
-
-	if (l > 0)
-	{
-		map.map = enlarge_map(map.map, map.max_l, map.max_c, nb_l, 0);
-
-		for (int i = nb_l; i > 0; i--)
-		{
-			map.map[0][i].content = map.map[0][i - 1].content;
-		}
-
-		map.max_l += nb_l;
-
-		if (set_cell(map.c, map.l, ROBOT1, map.mapper_socket))
-			return EXIT_FAILURE;
-	}
-
-	printf(">> %d %d\n", dist, info);
-	printf(">> %d\n", nb_l);
 
 	return EXIT_SUCCESS;
 
