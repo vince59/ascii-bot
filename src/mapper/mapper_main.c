@@ -39,6 +39,8 @@ int get_ascii(int code)
 {
 	switch (code)
 	{
+	case UNKNOWN:
+		return 	63 | WA_TOP; // ?
 	case FREE: 
 		return 32;
 	case OBSTACLE:
@@ -66,6 +68,7 @@ void *connection_handler(void *socket)
 	int col, row, code;
 
 	initscr();
+	clear();
 	start_color();
 
 	for (int r=1; r<=MAX_ROBOT; r++)
@@ -74,6 +77,7 @@ void *connection_handler(void *socket)
 	init_pair(FREE+1, COLOR_BLUE, COLOR_BLUE);
 	init_pair(OBSTACLE+1, COLOR_RED, COLOR_RED);
 	init_pair(TARGET+1, COLOR_BLACK, COLOR_YELLOW);
+	init_pair(UNKNOWN+1, COLOR_BLACK, COLOR_YELLOW);
 	//getmaxyx(stdscr, mrow, mcol);
 	curs_set(0);
 	do
@@ -81,6 +85,7 @@ void *connection_handler(void *socket)
 		if (get_message(message, sock))
 			break;
 		sscanf(message, "%c %d %d %d", &cmd, &col, &row, &code);
+		//printf("%c %d %d %d\n", &cmd, &col, &row, &code);
 		move(row, col);
 		color_set(code+1, NULL);
 		//delay_output(1000);

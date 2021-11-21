@@ -39,13 +39,15 @@ t_cell **enlarge_map(t_cell **matrix, int curr_r, int curr_c, int nb_row, int nb
 
 t_cell **add_rows(t_cell **matrix, int curr_r, int curr_c, int nb_row)
 {
+    if (nb_row <= 0)
+        return matrix;
     matrix = enlarge_map(matrix, curr_r, curr_c, nb_row, 0);
-    
-    for (int l = curr_r; l < (curr_r+nb_row); l++)
+
+    for (int l = curr_r; l < (curr_r + nb_row); l++)
     {
         for (int c = 0; c < curr_c; c++)
         {
-            matrix[c][l].content=UNKNOWN;
+            matrix[c][l].content = UNKNOWN;
         }
     }
     return matrix;
@@ -53,45 +55,48 @@ t_cell **add_rows(t_cell **matrix, int curr_r, int curr_c, int nb_row)
 
 t_cell **add_cols(t_cell **matrix, int curr_r, int curr_c, int nb_col)
 {
+    if (nb_col <= 0)
+        return matrix;
     matrix = enlarge_map(matrix, curr_r, curr_c, 0, nb_col);
 
-    for (int c = curr_c; c < (curr_c+nb_col); c++)
+    for (int c = curr_c; c < (curr_c + nb_col); c++)
     {
         for (int l = 0; l < curr_r; l++)
         {
-            matrix[c][l].content=UNKNOWN;
+            matrix[c][l].content = UNKNOWN;
         }
     }
     return matrix;
 }
 
-
 t_cell **insert_rows(t_cell **matrix, int curr_r, int curr_c, int nb_row)
 {
+    if (nb_row <= 0)
+        return matrix;
     matrix = enlarge_map(matrix, curr_r, curr_c, nb_row, 0);
-    for (int l = curr_r-1; l >= 0; l--)
-    {
+    for (int l = curr_r - 1; l >= 0; l--)
         for (int c = 0; c < curr_c; c++)
-        {
-            matrix[c][l+nb_row].content=matrix[c][l].content;
-            matrix[c][l].content=UNKNOWN;
-        }
-    }
+            matrix[c][l + nb_row].content = matrix[c][l].content;
+
+    for (int l = 0; l < nb_row; l++)
+        for (int c = 0; c < curr_c; c++)
+            matrix[c][l].content = UNKNOWN;
 
     return matrix;
 }
 
 t_cell **insert_cols(t_cell **matrix, int curr_r, int curr_c, int nb_col)
 {
+    if (nb_col <= 0)
+        return matrix;
     matrix = enlarge_map(matrix, curr_r, curr_c, 0, nb_col);
-    for (int c = curr_c-1; c >= 0; c--)
-    {
+    for (int c = curr_c - 1; c >= 0; c--)
         for (int l = 0; l < curr_r; l++)
-        {
-            matrix[c+nb_col][l].content=matrix[c][l].content;
-            matrix[c][l].content=UNKNOWN;
-        }
-    }
+            matrix[c + nb_col][l].content = matrix[c][l].content;
+    
+    for (int c = 0; c < nb_col; c++)
+        for (int l = 0; l < curr_r; l++)
+            matrix[c][l].content = UNKNOWN;
 
     return matrix;
 }
