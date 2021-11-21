@@ -23,13 +23,75 @@ t_cell **gen_map(int row, int col)
     return matrix;
 }
 
-t_cell **enlarge_map(t_cell **matrix, int l, int c,int row, int col)
+// curr_r, curr_c : actual number of rows / colums
+// nb_row, nb_col : number of row / columns you want to enlarge
+
+t_cell **enlarge_map(t_cell **matrix, int curr_r, int curr_c, int nb_row, int nb_col)
 {
     int i;
 
-    matrix = realloc(matrix, sizeof(t_cell *) * (col+c));
-    for (i = 0; i < (c+col); i++)
-        matrix[i] = realloc(matrix[i],sizeof(t_cell) * (row+l));
+    matrix = realloc(matrix, sizeof(t_cell *) * (nb_col + curr_c));
+    for (i = 0; i < (curr_c + nb_col); i++)
+        matrix[i] = realloc(matrix[i], sizeof(t_cell) * (nb_row + curr_r));
+
+    return matrix;
+}
+
+t_cell **add_rows(t_cell **matrix, int curr_r, int curr_c, int nb_row)
+{
+    matrix = enlarge_map(matrix, curr_r, curr_c, nb_row, 0);
+    
+    for (int l = curr_r; l < (curr_r+nb_row); l++)
+    {
+        for (int c = 0; c < curr_c; c++)
+        {
+            matrix[c][l].content=UNKNOWN;
+        }
+    }
+    return matrix;
+}
+
+t_cell **add_cols(t_cell **matrix, int curr_r, int curr_c, int nb_col)
+{
+    matrix = enlarge_map(matrix, curr_r, curr_c, 0, nb_col);
+
+    for (int c = curr_c; c < (curr_c+nb_col); c++)
+    {
+        for (int l = 0; l < curr_r; l++)
+        {
+            matrix[c][l].content=UNKNOWN;
+        }
+    }
+    return matrix;
+}
+
+
+t_cell **insert_rows(t_cell **matrix, int curr_r, int curr_c, int nb_row)
+{
+    matrix = enlarge_map(matrix, curr_r, curr_c, nb_row, 0);
+    for (int l = curr_r-1; l >= 0; l--)
+    {
+        for (int c = 0; c < curr_c; c++)
+        {
+            matrix[c][l+nb_row].content=matrix[c][l].content;
+            matrix[c][l].content=UNKNOWN;
+        }
+    }
+
+    return matrix;
+}
+
+t_cell **insert_cols(t_cell **matrix, int curr_r, int curr_c, int nb_col)
+{
+    matrix = enlarge_map(matrix, curr_r, curr_c, 0, nb_col);
+    for (int c = curr_c-1; c >= 0; c--)
+    {
+        for (int l = 0; l < curr_r; l++)
+        {
+            matrix[c+nb_col][l].content=matrix[c][l].content;
+            matrix[c][l].content=UNKNOWN;
+        }
+    }
 
     return matrix;
 }
@@ -42,7 +104,7 @@ void display_map(t_cell **matrix, int row, int col)
     for (l = 0; l < row; l++)
     {
         for (c = 0; c < col; c++)
-            printf("%d ", matrix[c][l].obstacle);
+            printf("%d ", matrix[c][l].content);
         printf("\n");
     }
     printf("\n\n");
@@ -53,8 +115,7 @@ void init_map(t_cell **matrix, int row, int col)
 {
     int l, c;
 
-    for (l = 0; l < row; l++) 
+    for (l = 0; l < row; l++)
         for (c = 0; c < col; c++)
-            matrix[c][l].obstacle = FREE;
+            matrix[c][l].content = FREE;
 }
-

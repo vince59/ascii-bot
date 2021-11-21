@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 
 	for (int col = 0; col < map.max_c; col++)
 		for (int row = 0; row < map.max_l; row++)
-			if (set_cell(col, row, map.map[col][row].obstacle, map.mapper_socket))
+			if (set_cell(col, row, map.map[col][row].content, map.mapper_socket))
 				return EXIT_FAILURE;
 
 	if (srv_listen(srv_port, &socket))
@@ -102,19 +102,19 @@ void *connection_handler(void *socket)
 				return NULL;
 			}
 
-			if (l < 0 || c < 0 || l >= map.max_l || c >= map.max_c || map.map[c][l].obstacle != FREE)
+			if (l < 0 || c < 0 || l >= map.max_l || c >= map.max_c || map.map[c][l].content != FREE)
 			{
 				if (send_status(C_KO, sock))
 					return NULL;
 			}
 			else
 			{
-				map.map[c1][l1].obstacle = FREE;
-				if (set_cell(c1, l1, map.map[c1][l1].obstacle, map.mapper_socket))
+				map.map[c1][l1].content = FREE;
+				if (set_cell(c1, l1, map.map[c1][l1].content, map.mapper_socket))
 					return NULL;
 
-				map.map[c][l].obstacle = bot_id;
-				if (set_cell(c, l, map.map[c][l].obstacle, map.mapper_socket))
+				map.map[c][l].content = bot_id;
+				if (set_cell(c, l, map.map[c][l].content, map.mapper_socket))
 					return NULL;
 
 				map.robots[bot_id].l = l;
@@ -135,8 +135,8 @@ void *connection_handler(void *socket)
 					detected=OBSTACLE;
 					break;
 				}
-				detected=map.map[c][l].obstacle;
-				if ( (detected != FREE)))
+				detected=map.map[c][l].content;
+				if (detected != FREE)
 					break;
 			}
 			sprintf(message, "%d %d_", dist, detected);
@@ -230,20 +230,20 @@ int load_map(char *file_name)
 				row++;
 				break;
 			case 'X':
-				map.map[col++][row].obstacle = OBSTACLE;
+				map.map[col++][row].content = OBSTACLE;
 				break;
 			case '0':
 				map.robots[0].l = row;
 				map.robots[0].c = col;
-				map.map[col++][row].obstacle = 0;
+				map.map[col++][row].content = 0;
 				break;
 			case '1':
 				map.robots[1].l = row;
 				map.robots[1].c = col;
-				map.map[col++][row].obstacle = 1;
+				map.map[col++][row].content = 1;
 				break;
 			case 'T':
-				map.map[col++][row].obstacle = TARGET;
+				map.map[col++][row].content = TARGET;
 				break;
 			default:
 				col++;

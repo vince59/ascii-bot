@@ -24,9 +24,12 @@
 
 t_map map;
 int move_to(int direction, int *status, int sim_socket);
+int test_matrix();
 
 int main(int argc, char *argv[])
 {
+	return test_matrix();
+
 	char sim_srv[40], mapper_srv[40];
 	int sim_port, mapper_port, sim_socket, mapper_socket = 0, id;
 
@@ -52,17 +55,85 @@ int main(int argc, char *argv[])
 	return EXIT_SUCCESS;
 }
 
+int test_matrix()
+{
+	map.max_c =4;
+	map.max_l = 3;
+	map.l = map.c = 0;
+	map.map = gen_map(map.max_l, map.max_c);
+	init_map(map.map, map.max_l, map.max_c);
+
+	map.map[map.c][map.l].content = 3;
+	display_map(map.map, map.max_l, map.max_c);
+
+	puts("Ajout 2 lignes\n");
+	map.map=add_rows(map.map, map.max_l, map.max_c, 2);
+	map.max_l+=2;
+	display_map(map.map, map.max_l, map.max_c);
+
+	puts("Ajout 1 colonne\n");
+	map.map=add_cols(map.map, map.max_l, map.max_c, 1);
+	map.max_c++;
+	display_map(map.map, map.max_l, map.max_c);
+
+	puts("Insertion 2 lignes\n");
+	map.map=insert_rows(map.map, map.max_l, map.max_c, 2);
+	map.max_l+=2;
+	display_map(map.map, map.max_l, map.max_c);
+
+	puts("Insertion 2 colonne\n");
+	map.map=insert_cols(map.map, map.max_l, map.max_c, 2);
+	map.max_c+=2;
+	display_map(map.map, map.max_l, map.max_c);
+
+return EXIT_SUCCESS;
+}
+
 int test_find_target(int sim_socket, int mapper_socket)
 {
-	map.max_c = map.max_l = map.l = map.c = 1;
+	map.max_c = map.max_l = 1;
+	map.l = map.c = 0;
 	map.map = gen_map(map.max_l, map.max_c);
 
-	map.map[0][0].obstacle = ROBOT1;
+	map.map[map.c][map.l].content = ROBOT1;
 	map.mapper_socket = mapper_socket;
 
-	if (set_cell(map.max_c, map.max_l, ROBOT1, map.mapper_socket))
+	int dist, info;
+
+	if (set_cell(map.c, map.l, ROBOT1, map.mapper_socket))
+		return EXIT_FAILURE;
+	
+	if (scan(N, &dist, &info, sim_socket))
+				return EXIT_FAILURE;
+
+	int l=map.l-dist;
+	int nb_l;
+	if (l<0)
+	{
+		nb_l=-l;
+	}
+
+	if (l>0) 
+	{
+	map.map = enlarge_map(map.map, map.max_l, map.max_c, nb_l, 0);
+
+	for (int i=nb_l; i>0; i--){
+		map.map[0][i].content=map.map[0][i-1].content;
+	}
+
+	map.max_l+=nb_l;
+
+
+	if (set_cell(map.c, map.l, ROBOT1, map.mapper_socket))
 		return EXIT_FAILURE;
 
+	}
+
+	printf(">> %d %d\n",dist,info);
+	printf(">> %d\n",nb_l);
+	char s[30];
+	scanf("%s",s);
+	/*
 	int dir, dist, info, status;
 	do
 	{
@@ -82,20 +153,21 @@ int test_find_target(int sim_socket, int mapper_socket)
 
 		if (scan(N, &dist, &info, sim_socket))
 				return EXIT_FAILURE;
-		
-		/*for (int d = 0; d < 8; d++)
+
+		for (int d = 0; d < 8; d++)
 		{
 			if (scan(d, &dist, &info, sim_socket))
 				return EXIT_FAILURE;
-			if (info == 0 || (info == OBSTACLE && dist > 2))
+			if (info == 0 || (info == content && dist > 2))
 			{
 				dir = d;
 				break;
 			}
-		}*/
+		}
 		if (go_to(dir, &status, sim_socket))
 			return EXIT_FAILURE;
-	} while (1);
+			break;
+	} while (1);*/
 	return EXIT_SUCCESS;
 }
 

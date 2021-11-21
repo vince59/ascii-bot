@@ -18,6 +18,7 @@
 #define FREE 5
 #define OBSTACLE 6
 #define TARGET 7
+#define UNKNOWN 8
 
 // orientation
 #define N 0	 // Nord
@@ -31,7 +32,7 @@
 
 struct s_cell
 {
-	int obstacle;
+	int content;
 };
 
 struct s_pos
@@ -46,6 +47,15 @@ typedef struct s_pos t_pos;	  // position inside the matrix
 t_cell **gen_map(int, int);
 void display_map(t_cell **, int, int); // display map to debug purpose
 void init_map(t_cell **, int, int);	   // init a exiting map
-t_cell **enlarge_map(t_cell **, int, int, int, int);
+
+// Enlarge map :
+// (t_cell **matrix, int curr_r, int curr_c, int nb_row, int nb_col)
+// curr_r, curr_c : actual number of rows / colums
+// nb_row, nb_col : number of row / columns you want to enlarge
+t_cell **enlarge_map(t_cell **, int, int, int, int); // 
+t_cell **add_rows(t_cell **matrix, int curr_r, int curr_c, int nb_row);
+t_cell **add_cols(t_cell **matrix, int curr_r, int curr_c, int nb_col);
+t_cell **insert_rows(t_cell **matrix, int curr_r, int curr_c, int nb_row);
+t_cell **insert_cols(t_cell **matrix, int curr_r, int curr_c, int nb_col);
 
 #endif
