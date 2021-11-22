@@ -215,52 +215,56 @@ int update_map(int sim_socket)
 	return EXIT_SUCCESS;
 }
 
-void
-plot_line (int x0, int y0, int x1, int y1)
+int get_path(int x0, int y0, int x1, int y1, int (*dots)[2])
 {
-  int dx =  abs (x1 - x0), sx = x0 < x1 ? 1 : -1;
-  int dy = -abs (y1 - y0), sy = y0 < y1 ? 1 : -1; 
-  int err = dx + dy, e2; /* error value e_xy */
- 
-  for (;;){  /* loop */
-	map.map[x0][y0].content = ROBOT2;
+	int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+	int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+	int err = dx + dy, i = 0, e2;
 
-    if (x0 == x1 && y0 == y1) break;
-    e2 = 2 * err;
-    if (e2 >= dy) { err += dy; x0 += sx; } /* e_xy+e_x > 0 */
-    if (e2 <= dx) { err += dx; y0 += sy; } /* e_xy+e_y < 0 */
-  }
+	for (;;)
+	{
+		if (dots != NULL)
+		{
+			dots[i][0] = x0;
+			dots[i][1] = y0;
+		}
+		i++;
+		if (x0 == x1 && y0 == y1)
+			break;
+		e2 = 2 * err;
+		if (e2 >= dy)
+		{
+			err += dy;
+			x0 += sx;
+		}
+		if (e2 <= dx)
+		{
+			err += dx;
+			y0 += sy;
+		}
+	}
+	return i;
 }
 
 int find_uncleared_zone(int *min_l, int *min_c)
 {
-	int min_dl = 30000;
-	int min_dc = 30000;
+	int dis = 9999;
 
 	for (int l = 0; l < map.max_l; l++)
 		for (int c = 0; c < map.max_c; c++)
 		{
 			if (map.map[c][l].content == UNKNOWN)
 			{
-				int d_c = abs(c - map.c);
-				int d_l = abs(l - map.l);
-				if (min_dl >= d_l && min_dc >= d_c)
+				int d = get_path(map.c, map.l, c, l, NULL);
+				if (d < dis)
 				{
-					printf("ok min_dl=%d d_l=%d l=%d map.l=%d\n", min_dl, d_l, l, map.l);
-					printf("ok min_dc=%d d_c=%d c=%d map.c=%d\n****\n", min_dc, d_c, c, map.c);
-					min_dl = d_l;
-					min_dc = d_c;
+					dis = d;
 					*min_l = l;
 					*min_c = c;
 				}
-				else
-				{
-				printf("ko min_dl=%d d_l=%d l=%d map.l=%d\n", min_dl, d_l, l, map.l);
-				printf("ko min_dc=%d d_c=%d c=%d map.c=%d\n****\n", min_dc, d_c, c, map.c);
-				}
 			}
 		}
-	return (min_dl == 3000);
+	return (dis == 9999);
 }
 
 int test_find_target(int sim_socket, int mapper_socket)
@@ -279,14 +283,23 @@ int test_find_target(int sim_socket, int mapper_socket)
 			return EXIT_FAILURE;
 
 		update_debug_map();
+
 		if (find_uncleared_zone(&l, &c))
 			break;
-
-		plot_line (0, 0, 9, 7);
-
-		//map.map[c][l].content = ROBOT2;
+		int path[map.max_l*map.max_c][2];
+		int i = get_path(map.c, map.l, c,l,path);
+		
+		for (int j=0; j<i; j++)
+		{
+			int c0=path[j][0];
+			int l0=path[j][1];
+			printf("%d %d\n",c0, l0);
+			map.map[c0][l0].content=ROBOT2;
+		}
+		
+		map.map[c][l].content=ROBOT3;
+		map.map[map.c][map.l].content=ROBOT1;
 		update_debug_map();
-		printf("l=%d c=%d\n", l, c);
 		char s[30];
 		scanf("%s", s);
 		if (s[0] == 'q')

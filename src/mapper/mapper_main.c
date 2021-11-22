@@ -40,8 +40,8 @@ int get_ascii(int code)
 	switch (code)
 	{
 	case UNKNOWN:
-		return 	63 | WA_TOP; // ?
-	case FREE: 
+		return 63 | WA_TOP; // ?
+	case FREE:
 		return 32;
 	case OBSTACLE:
 		return 97 | A_ALTCHARSET;
@@ -49,6 +49,8 @@ int get_ascii(int code)
 		return 49 | WA_TOP;
 	case ROBOT2:
 		return 50 | WA_TOP;
+	case ROBOT3:
+		return 51 | WA_TOP;
 	case TARGET:
 		return 84 | WA_TOP;
 	}
@@ -71,13 +73,13 @@ void *connection_handler(void *socket)
 	clear();
 	start_color();
 
-	for (int r=1; r<=MAX_ROBOT; r++)
+	for (int r = 1; r <= MAX_ROBOT; r++)
 		init_pair(r, COLOR_WHITE, COLOR_BLUE);
 
-	init_pair(FREE+1, COLOR_BLUE, COLOR_BLUE);
-	init_pair(OBSTACLE+1, COLOR_RED, COLOR_RED);
-	init_pair(TARGET+1, COLOR_BLACK, COLOR_YELLOW);
-	init_pair(UNKNOWN+1, COLOR_BLACK, COLOR_YELLOW);
+	init_pair(FREE + 1, COLOR_BLUE, COLOR_BLUE);
+	init_pair(OBSTACLE + 1, COLOR_RED, COLOR_RED);
+	init_pair(TARGET + 1, COLOR_BLACK, COLOR_YELLOW);
+	init_pair(UNKNOWN + 1, COLOR_BLACK, COLOR_YELLOW);
 	//getmaxyx(stdscr, mrow, mcol);
 	curs_set(0);
 	do
@@ -87,7 +89,7 @@ void *connection_handler(void *socket)
 		sscanf(message, "%c %d %d %d", &cmd, &col, &row, &code);
 		//printf("%c %d %d %d\n", &cmd, &col, &row, &code);
 		move(row, col);
-		color_set(code+1, NULL);
+		color_set(code + 1, NULL);
 		//delay_output(1000);
 		addch(get_ascii(code));
 		refresh();
@@ -99,5 +101,3 @@ void *connection_handler(void *socket)
 	free(socket);
 	return EXIT_SUCCESS;
 }
-
-		
