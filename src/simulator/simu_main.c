@@ -139,7 +139,7 @@ void *connection_handler(void *socket)
 				if (detected != FREE)
 					break;
 			}
-			sprintf(message, "%d %d_", dist, detected);
+			sprintf(message, "%d %d_", dist>MAX_SCAN_DIST ? dist-1 : dist, dist>MAX_SCAN_DIST ? FREE : detected);
 			if (send_message(message, sock))
 				return NULL;
 			break;
@@ -183,6 +183,7 @@ int get_next_cell(int dir, int *l, int *c)
 		break;
 	case NO:
 		(*l)--;
+		(*c)--;
 		break;
 	default:
 		return EXIT_FAILURE;

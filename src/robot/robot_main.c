@@ -152,6 +152,7 @@ int update_map(int sim_socket)
 	{
 		if (scan(d, &dist, &info, sim_socket))
 			return EXIT_FAILURE;
+		//printf(">> %d %d %d\n",d, dist, info);
 		switch (d)
 		{
 		case N:
@@ -223,10 +224,10 @@ int get_path(int x0, int y0, int x1, int y1, int (*dots)[2])
 
 	for (;;)
 	{
-		if (dots != NULL)
+		if (dots != NULL && i > 0)
 		{
-			dots[i][0] = x0;
-			dots[i][1] = y0;
+			dots[i - 1][0] = x0;
+			dots[i - 1][1] = y0;
 		}
 		i++;
 		if (x0 == x1 && y0 == y1)
@@ -243,20 +244,34 @@ int get_path(int x0, int y0, int x1, int y1, int (*dots)[2])
 			y0 += sy;
 		}
 	}
-	return i;
+	return i - 1;
 }
+
+//jeudi 2 décembre à 14h45
 
 int find_uncleared_zone(int *min_l, int *min_c)
 {
 	int dis = 9999;
-
+	int path[map.max_l * map.max_c][2];
 	for (int l = 0; l < map.max_l; l++)
 		for (int c = 0; c < map.max_c; c++)
 		{
 			if (map.map[c][l].content == UNKNOWN)
 			{
-				int d = get_path(map.c, map.l, c, l, NULL);
-				if (d < dis)
+				int d = get_path(map.c, map.l, c, l, path);
+				int k = 0;
+				for (int j = 0; j < d; j++)
+				{
+					if (map.map[path[j][0]][path[j][1]].content == OBSTACLE)
+					{
+						k++;
+						break;
+					}
+				}
+
+				//if (k == 1)
+				//	printf("%d\n", k);
+				if (k == 0 && d < dis)
 				{
 					dis = d;
 					*min_l = l;
@@ -265,6 +280,32 @@ int find_uncleared_zone(int *min_l, int *min_c)
 			}
 		}
 	return (dis == 9999);
+}
+
+int get_dir_to_cell(int r_l, int r_c, int l, int c)
+{
+	int d_l = r_l - l;
+	int d_c = r_c - c;
+
+	if (d_l == 0)
+	{
+		if (d_c > 0)
+			return O;
+		return E;
+	}
+	if (d_c == 0)
+	{
+		if (d_l > 0)
+			return N;
+		return S;
+	}
+	if (d_l > 0 && d_c > 0)
+		return NO;
+	if (d_l > 0 && d_c < 0)
+		return NE;
+	if (d_l < 0 && d_c > 0)
+		return SO;
+	return SE;
 }
 
 int test_find_target(int sim_socket, int mapper_socket)
@@ -283,29 +324,50 @@ int test_find_target(int sim_socket, int mapper_socket)
 			return EXIT_FAILURE;
 
 		update_debug_map();
-
+		
 		if (find_uncleared_zone(&l, &c))
 			break;
-		int path[map.max_l*map.max_c][2];
-		int i = get_path(map.c, map.l, c,l,path);
-		
-		for (int j=0; j<i; j++)
+
+		int path[map.max_l * map.max_c][2];
+		int i = get_path(map.c, map.l, c, l, path);
+
+		for (int j = 0; j < i; j++)
 		{
-			int c0=path[j][0];
-			int l0=path[j][1];
-			printf("%d %d\n",c0, l0);
-			map.map[c0][l0].content=ROBOT2;
+			int c0 = path[j][0];
+			int l0 = path[j][1];
+			if (map.map[c0][l0].content!=FREE)
+				break;
+
+			int dir = get_dir_to_cell(map.l, map.c, l0, c0);
+			int status;
+			printf("R_l=%d R_c=%d step_l=%d step_c=%d dest_l=%d dest_c=%d dir=%d\n", map.l, map.c, l0, c0, l, c, dir);
+			//char s[30];
+			//scanf("%s", s);
+			//if (s[0] == 'q')
+			//	break;
+				delay(50);
+			if (go_to(dir, &status, sim_socket))
+				return EXIT_FAILURE;
+			if (status != CMD_OK)
+			{
+				puts("bing!\n");
+				return EXIT_FAILURE;
+			}
+			map.map[map.c][map.l].content = FREE;
+			map.l = l0;
+			map.c = c0;
+			map.map[map.c][map.l].content = ROBOT1;
+			if (update_map(sim_socket))
+				return EXIT_FAILURE;
+			update_debug_map();
 		}
-		
-		map.map[c][l].content=ROBOT3;
-		map.map[map.c][map.l].content=ROBOT1;
-		update_debug_map();
-		char s[30];
-		scanf("%s", s);
-		if (s[0] == 'q')
-			break;
 	}
 
+	puts("fini\n");
+				char s[30];
+			scanf("%s", s);
+			/*if (s[0] == 'q')
+				break;*/
 	return EXIT_SUCCESS;
 
 	/*

@@ -21,14 +21,14 @@
 #define UNKNOWN 8
 
 // orientation
-#define N 0	 // Nord
-#define NE 1 // Nord Est
-#define E 2	 // Est
-#define SE 3 // SudEst
-#define S 4	 // Sud
-#define SO 5 // Sud Ouest
-#define O 6	 // Ouest
-#define NO 7 // Nord Ouest
+#define N 0	  // Nord
+#define NE 1  // Nord  Est
+#define E 2	  // Est
+#define SE 3  // Sud  Est
+#define S 4	  // Sud
+#define SO 5  // Sud  Ouest
+#define O 6   // Ouest
+#define NO 7  // Nord  Ouest
 
 struct s_cell
 {

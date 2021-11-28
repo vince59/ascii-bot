@@ -30,9 +30,17 @@ t_cell **enlarge_map(t_cell **matrix, int curr_r, int curr_c, int nb_row, int nb
 {
     int i;
 
-    matrix = realloc(matrix, sizeof(t_cell *) * (nb_col + curr_c));
-    for (i = 0; i < (curr_c + nb_col); i++)
-        matrix[i] = realloc(matrix[i], sizeof(t_cell) * (nb_row + curr_r));
+    if (nb_col > 0)
+    {
+        matrix = realloc(matrix, sizeof(t_cell *) * (nb_col + curr_c));
+        for (i = curr_c; i < ( curr_c + nb_col); i++)
+            matrix[i] = malloc(sizeof(t_cell) * curr_r);
+    }
+    if (nb_row > 0)
+    {
+        for (i = 0; i < ( curr_c + nb_col); i++)
+            matrix[i] = realloc(matrix[i],sizeof(t_cell) * (nb_row + curr_r));
+    }
 
     return matrix;
 }
@@ -93,7 +101,7 @@ t_cell **insert_cols(t_cell **matrix, int curr_r, int curr_c, int nb_col)
     for (int c = curr_c - 1; c >= 0; c--)
         for (int l = 0; l < curr_r; l++)
             matrix[c + nb_col][l].content = matrix[c][l].content;
-    
+
     for (int c = 0; c < nb_col; c++)
         for (int l = 0; l < curr_r; l++)
             matrix[c][l].content = UNKNOWN;
