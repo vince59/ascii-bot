@@ -53,6 +53,8 @@ int get_ascii(int code)
 		return 51 | WA_TOP;
 	case TARGET:
 		return 84 | WA_TOP;
+	case TRACE: 
+		return 97 | A_ALTCHARSET;
 	}
 	return '?';
 }
@@ -79,6 +81,7 @@ void *connection_handler(void *socket)
 	init_pair(FREE + 1, COLOR_BLUE, COLOR_BLUE);
 	init_pair(OBSTACLE + 1, COLOR_RED, COLOR_RED);
 	init_pair(TARGET + 1, COLOR_BLACK, COLOR_YELLOW);
+	init_pair(TRACE + 1, COLOR_GREEN, COLOR_GREEN);
 	init_pair(UNKNOWN + 1, COLOR_BLACK, COLOR_YELLOW);
 	//getmaxyx(stdscr, mrow, mcol);
 	curs_set(0);

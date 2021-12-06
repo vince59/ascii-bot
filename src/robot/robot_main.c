@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <curses.h>
+#include <math.h>
 
 #include "network.h"
 #include "utils.h"
@@ -97,7 +98,7 @@ int update_debug_map()
 {
 	for (int l = 0; l < map.max_l; l++)
 		for (int c = 0; c < map.max_c; c++)
-			if (set_cell(c, l, map.map[c][l].content, map.mapper_socket))
+			if (set_cell(c, l, map.map[c][l].count > 0 && map.map[c][l].content != ROBOT1 ? TRACE : map.map[c][l].content, map.mapper_socket))
 				return EXIT_FAILURE;
 	return EXIT_SUCCESS;
 }
@@ -312,25 +313,17 @@ int find_uncleared_zone(int *min_l, int *min_c)
 
 int out_of_bound_x(int x)
 {
-	if (x < 0)
-		return EXIT_FAILURE;
-	if (x >= map.max_c)
-		return EXIT_FAILURE;
-	return EXIT_SUCCESS;
+	return ((x < 0) || (x >= map.max_c));
 }
 
 int out_of_bound_y(int y)
 {
-	if (y < 0)
-		return EXIT_FAILURE;
-	if (y >= map.max_l)
-		return EXIT_FAILURE;
-	return EXIT_SUCCESS;
+	return ((y < 0) || (y >= map.max_l));
 }
 
 int out_of_bound(int x, int y)
 {
-	return (!out_of_bound_x(x) && !out_of_bound_y(y));
+	return (out_of_bound_x(x) || out_of_bound_y(y));
 }
 
 // Find the closest unknown cell from the bot cell
@@ -343,46 +336,56 @@ int out_of_bound(int x, int y)
 int find_unknown_cell(int *x, int *y, int level)
 {
 	int x0 = map.c - level;
-	int y0 = map.l - level;
+	int y0 = map.l + level;
 	int x1 = map.c + level;
-	int y1 = map.l + level;
-	int length = x1 - x0;
+	int y1 = map.l - level;
+	int length = level * 2 + 1;
 
 	int stop = 0;
-
+	printf("---- %d ----- %d \n",level, length);
 	// A
 	if (!out_of_bound_y(y1))
 	{
 		for (int i = 0; i < length; i++)
 		{
 			int ix0 = x0 + i;
+			printf("AA x = %d, y = %d\n", ix0,y1);
 			if (!out_of_bound_x(ix0) && map.map[ix0][y1].content == UNKNOWN)
 			{
 				*x = ix0;
 				*y = y1;
-				return EXIT_SUCCESS;
+				printf("Target x=%d,y=%d\n",*x,*y);
+				return TRUE;
 			}
 		}
 	}
 	else
+	{
 		stop++;
+		printf("y1 %d\n", y1);
+	}
 
 	// B
 	if (!out_of_bound_x(x0))
 	{
 		for (int i = 0; i < length; i++)
 		{
-			int iy0 = y0 + i;
+			int iy0 = y1 + i;
+			printf("BB x = %d, y = %d\n", x0,iy0);
 			if (!out_of_bound_y(iy0) && map.map[x0][iy0].content == UNKNOWN)
 			{
 				*x = x0;
 				*y = iy0;
-				return EXIT_SUCCESS;
+				printf("Target x=%d,y=%d\n",*x,*y);
+				return TRUE;
 			}
 		}
 	}
 	else
+			{
 		stop++;
+		printf("x0 %d\n", x0);
+	}
 
 	// C
 	if (!out_of_bound_y(y0))
@@ -390,42 +393,52 @@ int find_unknown_cell(int *x, int *y, int level)
 		for (int i = 0; i < length; i++)
 		{
 			int ix0 = x0 + i;
+			printf("CC x = %d, y = %d\n", ix0,y0);
 			if (!out_of_bound_x(ix0) && map.map[ix0][y0].content == UNKNOWN)
 			{
 				*x = ix0;
 				*y = y0;
-				return EXIT_SUCCESS;
+				printf("Target x=%d,y=%d\n",*x,*y);
+				return TRUE;
 			}
 		}
 	}
 	else
+			{
 		stop++;
+		printf("y0 %d\n", y0);
+	}
 
 	// D
 	if (!out_of_bound_x(x1))
 	{
 		for (int i = 0; i < length; i++)
 		{
-			int iy0 = y0 + i;
+			int iy0 = y1 + i;
+			printf("DD x = %d, y = %d\n", x1,iy0);
 			if (!out_of_bound_y(iy0) && map.map[x1][iy0].content == UNKNOWN)
 			{
 				*x = x1;
 				*y = iy0;
-				return EXIT_SUCCESS;
+				printf("Target x=%d,y=%d\n",*x,*y);
+				return TRUE;
 			}
 		}
 	}
 	else
+		{
 		stop++;
+		printf("x1 %d\n", x1);
+	}
 
 	if (stop < 4)
 		return find_unknown_cell(x, y, level + 1);
-	return EXIT_FAILURE;
+	return FALSE;
 }
 
 int push_cell(int i, int x, int y, int (*cells)[2])
 {
-	if (!out_of_bound(x, y) && map.map[x][y].content == FREE)
+	if (!out_of_bound(x, y) && map.map[x][y].content == FREE && map.map[x][y].count == 0)
 	{
 		cells[i][0] = x;
 		cells[i][1] = y;
@@ -483,6 +496,19 @@ int get_dir_to_cell(int r_l, int r_c, int l, int c)
 	return SE;
 }
 
+// get digonal length (pythagore therorem)
+int get_digonal_length()
+{
+	return sqrt((map.max_c ^ 2) + (map.max_l ^ 2));
+}
+
+void clear_count()
+{
+	for (int l = 0; l < map.max_l; l++)
+		for (int c = 0; c < map.max_c; c++)
+			map.map[c][l].count = 0;
+}
+
 // test program to find a target
 
 int test_find_target(int sim_socket, int mapper_socket)
@@ -492,6 +518,7 @@ int test_find_target(int sim_socket, int mapper_socket)
 	map.map = gen_map(map.max_l, map.max_c);
 
 	map.map[map.c][map.l].content = ROBOT1;
+	map.map[map.c][map.l].count++;
 	map.mapper_socket = mapper_socket;
 
 	for (;;)
@@ -501,32 +528,39 @@ int test_find_target(int sim_socket, int mapper_socket)
 			return EXIT_FAILURE;
 
 		update_debug_map(); // display updated map with the mapper
-
-		if (find_unknown_cell(&c, &l, 1)) // find the closest unknown cell from the bot
-			break;
-
-		int cells[8][2];
-		int k=find_all_free_adjacent_cells(map.c, map.l, cells)
-
-		
-		int path[map.max_l * map.max_c][2];
-		int i = get_path(map.c, map.l, c, l, path);
-
-		for (int j = 0; j < i; j++)
+		puts("New target\n");
+		clear_count();
+		if (!find_unknown_cell(&c, &l, 1)) // find the closest unknown cell from the bot
 		{
-			int c0 = path[j][0];
-			int l0 = path[j][1];
-			if (map.map[c0][l0].content != FREE)
-				break;
+			puts("All area discovered\n");
+			break; // all the area has been discovered
+		}
 
-			int dir = get_dir_to_cell(map.l, map.c, l0, c0);
+		for (;;)
+		{
+			int cells[8][2];
+			int k = find_all_free_adjacent_cells(map.c, map.l, cells);
+			if (k == 0)
+				break; // bot seems to be in jail ???
+			int dist = 9999, min = 0;
+			for (int m = 0; m < k; m++) // iterate on each free adjacent cells
+			{
+				int d = get_path(cells[m][0], cells[m][1], c, l, NULL);
+				if (d < dist)
+				{
+					dist = d;
+					min = m;
+				}
+			}
+
+			if (dist == 9999)
+				break; // is it possible ???
+
+			// get the direction to go the closest free cell form the bot to the closest unknown cells
+			int dir = get_dir_to_cell(map.l, map.c, cells[min][1], cells[min][0]);
+
+			// go to the closest free cell form the bot to the closest unknown cells
 			int status;
-			printf("R_l=%d R_c=%d step_l=%d step_c=%d dest_l=%d dest_c=%d dir=%d\n", map.l, map.c, l0, c0, l, c, dir);
-			//char s[30];
-			//scanf("%s", s);
-			//if (s[0] == 'q')
-			//	break;
-			//	delay(50);
 			if (go_to(dir, &status, sim_socket))
 				return EXIT_FAILURE;
 			if (status != CMD_OK)
@@ -534,13 +568,30 @@ int test_find_target(int sim_socket, int mapper_socket)
 				puts("bing!\n");
 				return EXIT_FAILURE;
 			}
+			/*if (s[0] == 'q')
+				break;*/
 			map.map[map.c][map.l].content = FREE;
-			map.l = l0;
-			map.c = c0;
+			map.l = cells[min][1];
+			map.c = cells[min][0];
 			map.map[map.c][map.l].content = ROBOT1;
+			map.map[map.c][map.l].count++;
+
 			if (update_map(sim_socket))
 				return EXIT_FAILURE;
 			update_debug_map();
+			set_cell(c, l, TARGET, map.mapper_socket);
+			char s[30];
+			scanf("%s", s);
+			if (map.l == l && map.c == c)
+			{
+				puts("target found !!\n");
+				break;
+			}
+			if (map.map[c][l].content == OBSTACLE)
+			{
+				puts("target in wall !!\n");
+				break;
+			}
 		}
 	}
 
@@ -549,43 +600,6 @@ int test_find_target(int sim_socket, int mapper_socket)
 	scanf("%s", s);
 	/*if (s[0] == 'q')
 				break;*/
-	return EXIT_SUCCESS;
-
-	/*
-	int dir, dist, info, status;
-	do
-	{
-		if (find_target(&dir, &dist, sim_socket))
-			return EXIT_FAILURE;
-		if (dir > -1)
-		{
-			printf("Target localized at %d %d\n", dir, dist);
-			do
-			{
-				if (go_to(dir, &status, sim_socket))
-					return EXIT_FAILURE;
-			} while (status == CMD_OK);
-			puts("Target catched !\n");
-			return EXIT_SUCCESS;
-		}
-
-		if (scan(N, &dist, &info, sim_socket))
-				return EXIT_FAILURE;
-
-		for (int d = 0; d < 8; d++)
-		{
-			if (scan(d, &dist, &info, sim_socket))
-				return EXIT_FAILURE;
-			if (info == 0 || (info == content && dist > 2))
-			{
-				dir = d;
-				break;
-			}
-		}
-		if (go_to(dir, &status, sim_socket))
-			return EXIT_FAILURE;
-			break;
-	} while (1);*/
 	return EXIT_SUCCESS;
 }
 

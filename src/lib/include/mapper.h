@@ -18,7 +18,8 @@
 #define FREE 5
 #define OBSTACLE 6
 #define TARGET 7
-#define UNKNOWN 8
+#define TRACE 8
+#define UNKNOWN 9
 
 // orientation
 #define N 0	  // Nord
@@ -33,6 +34,7 @@
 struct s_cell
 {
 	int content;
+	int count;
 };
 
 struct s_pos
